@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Homeoffice‑Trainer – Bauanleitung & Varianten</title>
+  <title>Homeoffice-Trainer – Bauanleitung, Varianten & Produkte</title>
   <style>
     :root{
       --bg:#0b0d10;
@@ -68,7 +68,7 @@
     }
   </style>
 
-  <!-- Minimal IKEA‑artige Piktogramm‑Spritemap -->
+  <!-- Minimal IKEA-artige Piktogramm-Spritemap -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
     <symbol id="i-bike" viewBox="0 0 24 24">
       <circle cx="6" cy="18" r="3"></circle>
@@ -153,20 +153,21 @@
   <div class="wrap">
     <header>
       <div class="legend">
-        <span class="pill"><svg class="icon"><use href="#i-leaf"/></svg><span class="tag">Mensch‑&Ouml;ko‑Strom</span></span>
+        <span class="pill"><svg class="icon"><use href="#i-leaf"/></svg><span class="tag">Mensch-&Ouml;ko-Strom</span></span>
         <span class="pill"><svg class="icon"><use href="#i-bolt"/></svg><span class="tag">~100&nbsp;W Tretleistung m&ouml;glich</span></span>
-        <span class="pill"><svg class="icon"><use href="#i-shield"/></svg><span class="tag">Sicherheits‑Hinweise beachten</span></span>
+        <span class="pill"><svg class="icon"><use href="#i-shield"/></svg><span class="tag">Sicherheits-Hinweise beachten</span></span>
       </div>
-      <div class="title">Homeoffice‑Trainer</div>
-      <div class="subtitle">Modulares Pedal‑Kraftwerk f&uuml;r Laptop, Monitor &amp; Kleinger&auml;te – Bauanleitung mit Varianten, Teilelisten &amp; Piktogrammen</div>
+      <div class="title">Homeoffice-Trainer</div>
+      <div class="subtitle">Modulares Pedal-Kraftwerk f&uuml;r Laptop, Monitor &amp; Kleinger&auml;te – Bauanleitung mit Varianten, Teilelisten, <strong>konkreten Produkten</strong> &amp; Piktogrammen</div>
       <ul class="toc">
         <li><a href="#idee">Idee</a></li>
         <li><a href="#varianten">Varianten</a></li>
         <li><a href="#teile">Teilelisten</a></li>
         <li><a href="#werkzeug">Werkzeug</a></li>
-        <li><a href="#bau">Bau‑Schritte</a></li>
+        <li><a href="#starter">Starter‑BOM</a></li>
+        <li><a href="#bau">Bau-Schritte</a></li>
         <li><a href="#schema">Schaltbilder</a></li>
-        <li><a href="#leistung">Leistungs‑Check</a></li>
+        <li><a href="#leistung">Leistungs-Check</a></li>
         <li><a href="#tipps">Tipps &amp; Troubleshooting</a></li>
         <li><a href="#recht">Netzeinspeisung &amp; Recht</a></li>
       </ul>
@@ -188,27 +189,27 @@
         </div>
         <div class="card">
           <div class="flex"><div class="iconbox"><svg class="icon"><use href="#i-eco"/></svg></div>
-            <div><strong>leise &amp; kreislauff&auml;hig</strong><div class="muted">viele Teile k&ouml;nnen Second‑Hand sein</div></div>
+            <div><strong>leise &amp; kreislauff&auml;hig</strong><div class="muted">viele Teile k&ouml;nnen Second-Hand sein</div></div>
           </div>
         </div>
       </div>
       <div class="warning">
-        <strong>Hinweis:</strong> Die Netto‑Leistung h&auml;ngt stark von Person, Ergonomie und Elektronik ab. Plane mit <strong>50–70&nbsp;%</strong> Gesamtwirkungsgrad vom Pedal bis zur nutzbaren Elektrik.
+        <strong>Hinweis:</strong> Die Netto-Leistung h&auml;ngt stark von Person, Ergonomie und Elektronik ab. Plane mit <strong>50–70&nbsp;%</strong> Gesamtwirkungsgrad vom Pedal bis zur nutzbaren Elektrik.
       </div>
     </section>
 
     <section id="varianten" class="grid cols-2">
       <div class="card">
         <h2><svg class="icon big"><use href="#i-piggy"/></svg> Variante A – Budget &amp; Einfach</h2>
-        <p>Kern: <strong>24&nbsp;V Gleichstrom‑Motor</strong> als Generator (z.&nbsp;B. aus Scooter/Tretm&uuml;hle), <strong>12&nbsp;V LiFePO<sub>4</sub> Akku</strong> als Puffer, <strong>USB‑C PD Kfz‑Ladeger&auml;t</strong> f&uuml;r den Laptop. Optional kleiner <strong>reiner Sinus‑Inverter</strong> (150–300&nbsp;W) f&uuml;r 230&nbsp;V.</p>
+        <p>Kern: <strong>24&nbsp;V Gleichstrom-Motor</strong> als Generator (z.&nbsp;B. aus Scooter/Tretm&uuml;hle), <strong>12&nbsp;V LiFePO<sub>4</sub> Akku</strong> als Puffer, <strong>USB-C PD Kfz-Ladeger&auml;t</strong> f&uuml;r den Laptop. Optional kleiner <strong>reiner Sinus-Inverter</strong> (150–300&nbsp;W) f&uuml;r 230&nbsp;V.</p>
         <div class="legend">
           <span class="badge"><svg class="icon"><use href="#i-clip"/></svg>Upcycling m&ouml;glich</span>
           <span class="badge"><svg class="icon"><use href="#i-gear"/></svg>Wenig Elektronik</span>
         </div>
       </div>
       <div class="card">
-        <h2><svg class="icon big"><use href="#i-crown"/></svg> Variante B – Komfort &amp; Feature‑Rich</h2>
-        <p>Kern: <strong>E‑Bike Nabenmotor</strong> als 3‑Phasen‑Generator + <strong>Gleichrichter</strong> + <strong>MPPT‑Laderegler (12/24&nbsp;V)</strong> f&uuml;r optimale Ausbeute. <strong>LiFePO<sub>4</sub> Akku</strong> + <strong>reiner Sinus‑Inverter 300–600&nbsp;W</strong> f&uuml;r Netzger&auml;te.</p>
+        <h2><svg class="icon big"><use href="#i-crown"/></svg> Variante B – Komfort &amp; Feature-Rich</h2>
+        <p>Kern: <strong>E-Bike Nabenmotor</strong> als 3-Phasen-Generator + <strong>Gleichrichter</strong> + <strong>MPPT-Laderegler (12/24&nbsp;V)</strong> f&uuml;r optimale Ausbeute. <strong>LiFePO<sub>4</sub> Akku</strong> + <strong>reiner Sinus-Inverter 300–600&nbsp;W</strong> f&uuml;r Netzger&auml;te.</p>
         <div class="legend">
           <span class="badge"><svg class="icon"><use href="#i-battery"/></svg>H&ouml;herer Puffer</span>
           <span class="badge"><svg class="icon"><use href="#i-rectifier"/></svg>MPPT f&uuml;r bessere Effizienz</span>
@@ -216,16 +217,16 @@
       </div>
       <div class="card">
         <h2><svg class="icon big"><use href="#i-microinv"/></svg> Variante C – Netzeinspeiser (mit Fachbetrieb)</h2>
-        <p><strong>Nur mit zertifiziertem Mikro‑Wechselrichter</strong> (z.&nbsp;B. f&uuml;r Balkon‑PV) und <strong>Fachperson</strong>: Generator &rarr; DC‑Wandlung auf PV‑Eingangsfenster &rarr; <strong>Mikroinverter</strong> &rarr; Steckdose. Zugelassenes Anti‑Islanding &amp; Normen sind Pflicht.</p>
-        <div class="danger"><strong>Achtung:</strong> Netzparallelbetrieb ist genehmigungs‑ &amp; normpflichtig. Unbedingt <em>VDE‑AR‑N&nbsp;4105</em> &amp; lokale Vorgaben einhalten und Elektro‑Fachbetrieb einbinden.</div>
+        <p><strong>Nur mit zertifiziertem Mikro-Wechselrichter</strong> (z.&nbsp;B. f&uuml;r Balkon-PV) und <strong>Fachperson</strong>: Generator &rarr; DC-Wandlung auf PV-Eingangsfenster &rarr; <strong>Mikroinverter</strong> &rarr; Steckdose. Zugelassenes Anti-Islanding &amp; Normen sind Pflicht.</p>
+        <div class="danger"><strong>Achtung:</strong> Netzparallelbetrieb ist genehmigungs- &amp; normpflichtig. Unbedingt <em>VDE-AR-N&nbsp;4105</em> &amp; lokale Vorgaben einhalten und Elektro-Fachbetrieb einbinden.</div>
       </div>
       <div class="card">
-        <h2><svg class="icon big"><use href="#i-tools"/></svg> Ergonomie &amp; Komfort‑Addons</h2>
+        <h2><svg class="icon big"><use href="#i-tools"/></svg> Ergonomie &amp; Komfort-Addons</h2>
         <ul>
           <li>Rollentrainer (Hinterrad) oder Direktantrieb – stabil, leise</li>
           <li>Schwungrad/Schwerg&auml;ngigkeit fein abstimmen (Gangwahl vs. Last)</li>
-          <li>USB‑C PD 100&nbsp;W, 12&nbsp;V Buchsen, LED‑Beleuchtung, L&uuml;fter</li>
-          <li>Display (Spannung/Strom/Leistung), Trittfrequenz‑Sensor</li>
+          <li>USB-C PD 100&nbsp;W, 12&nbsp;V Buchsen, LED-Beleuchtung, L&uuml;fter</li>
+          <li>Display (Spannung/Strom/Leistung), Trittfrequenz-Sensor</li>
         </ul>
       </div>
     </section>
@@ -236,43 +237,73 @@
       <table class="parts">
         <thead><tr><th>Bauteil</th><th>Spezifikation</th><th>Hinweis</th><th>Menge</th></tr></thead>
         <tbody>
-          <tr><td><svg class="icon"><use href="#i-bike"/></svg> Rollentrainer‑St&auml;nder</td><td>F&uuml;r Hinterrad, Reifenantrieb</td><td>Gebraucht g&uuml;nstig zu finden</td><td>1</td></tr>
-          <tr><td><svg class="icon"><use href="#i-gear"/></svg> DC‑Motor (Generator)</td><td>Permanentmagnet, 24&nbsp;V, 150–350&nbsp;W Nenn</td><td>Treadmill‑/Scooter‑Motor eignet sich gut</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-bike"/></svg> Rollentrainer-St&auml;nder</td><td>F&uuml;r Hinterrad, Reifenantrieb</td><td>Gebraucht g&uuml;nstig zu finden</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-gear"/></svg> DC-Motor (Generator)</td><td>Permanentmagnet, 24&nbsp;V, 150–350&nbsp;W Nenn</td><td>Treadmill-/Scooter-Motor eignet sich gut</td><td>1</td></tr>
           <tr><td><svg class="icon"><use href="#i-gear"/></svg> Reibrolle / Riemenkit</td><td>Rolle &Oslash; 30–50&nbsp;mm oder Keilriemen</td><td>An das Hinterrad pressen</td><td>1</td></tr>
-          <tr><td><svg class="icon"><use href="#i-fuse"/></svg> Sicherung + Halter</td><td>10&nbsp;A (bei 12&nbsp;V‑System)</td><td>Nah am Akku in Plusleitung</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-fuse"/></svg> Sicherung + Halter</td><td>10&nbsp;A (bei 12&nbsp;V-System)</td><td>Nah am Akku in Plusleitung</td><td>1</td></tr>
           <tr><td><svg class="icon"><use href="#i-battery"/></svg> LiFePO<sub>4</sub> Akku</td><td>12&nbsp;V, 10–20&nbsp;Ah</td><td>Robust, viele Zyklen</td><td>1</td></tr>
-          <tr><td><svg class="icon"><use href="#i-rectifier"/></svg> DC‑DC Laderegler</td><td>Step‑Down/Up auf 13.8–14.4&nbsp;V</td><td>Ladespannung f&uuml;r LiFePO<sub>4</sub></td><td>1</td></tr>
-          <tr><td><svg class="icon"><use href="#i-plug"/></svg> USB‑C PD Kfz‑Lader</td><td>100&nbsp;W (PD&nbsp;3.0)</td><td>F&uuml;r Laptop/Telefon</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-rectifier"/></svg> DC-DC Laderegler</td><td>Step-Down/Up auf 13.8–14.4&nbsp;V</td><td>Ladespannung f&uuml;r LiFePO<sub>4</sub></td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-plug"/></svg> USB-C PD Kfz-Lader</td><td>100&nbsp;W (PD&nbsp;3.0)</td><td>F&uuml;r Laptop/Telefon</td><td>1</td></tr>
           <tr><td><svg class="icon"><use href="#i-inverter"/></svg> Inverter (optional)</td><td>Reiner Sinus 150–300&nbsp;W</td><td>Nur falls 230&nbsp;V ben&ouml;tigt</td><td>1</td></tr>
           <tr><td>Kleinteile</td><td>Kabel 2.5&nbsp;mm&sup2;, XT60/Anderson, Ringkabelschuhe, Kabelbinder</td><td>Sauber &amp; sicher verkabeln</td><td>—</td></tr>
         </tbody>
       </table>
 
-      <h3>Variante B – Komfort &amp; Feature‑Rich</h3>
+      <div class="callout">
+        <strong>Empfohlene konkrete Produkte (Beispiele, auch gebraucht):</strong>
+        <ul>
+          <li><strong>Generator:</strong> PM‑Gleichstrommotor <em>MY1016</em>, 24 V / 300 W (Scooter‑Klasse, Bürsten‑DC).</li>
+          <li><strong>Rollentrainer:</strong> Wheel‑on‑Trainer z. B. <em>Tacx Blue Matic T2650</em> (oder vergleichbar von Elite/Minoura).</li>
+          <li><strong>Antrieb:</strong> <em>Gates PowerGrip HTD‑5M</em> Zahnriemen (15 mm) + 2 Riemenscheiben (z. B. 20T am Motor‑Ø 10 mm; 50–60T an Trainerrolle, je nach Schaft).</li>
+          <li><strong>Elektrik (später):</strong> Einfache DC‑DC‑Regelung auf 13,8–14,4 V falls Akku geplant.</li>
+        </ul>
+        <div class="muted">Hinweis: Für den allerersten Test reichen Motor + Riemen + provisorische Halterung. Akku/Elektronik kannst du später ergänzen.</div>
+      </div>
+
+      <h3>Variante B – Komfort &amp; Feature-Rich</h3>
       <table class="parts">
         <thead><tr><th>Bauteil</th><th>Spezifikation</th><th>Hinweis</th><th>Menge</th></tr></thead>
         <tbody>
-          <tr><td><svg class="icon"><use href="#i-bike"/></svg> Trainer + Nabenmotor</td><td>E‑Bike Nabenmotor (ohne Controller)</td><td>Als 3‑Phasen‑Generator</td><td>1</td></tr>
-          <tr><td><svg class="icon"><use href="#i-rectifier"/></svg> 3‑Phasen Gleichrichter</td><td>&ge; 20&nbsp;A, &ge; 100&nbsp;V</td><td>Br&uuml;ckengleichrichter</td><td>1</td></tr>
-          <tr><td><svg class="icon"><use href="#i-rectifier"/></svg> MPPT‑Laderegler</td><td>12/24&nbsp;V LiFePO<sub>4</sub>, 10–20&nbsp;A</td><td>PV‑Eingang nutzbar</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-bike"/></svg> Trainer + Nabenmotor</td><td>E-Bike Nabenmotor (ohne Controller)</td><td>Als 3-Phasen-Generator</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-rectifier"/></svg> 3-Phasen Gleichrichter</td><td>&ge; 20&nbsp;A, &ge; 100&nbsp;V</td><td>Br&uuml;ckengleichrichter</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-rectifier"/></svg> MPPT-Laderegler</td><td>12/24&nbsp;V LiFePO<sub>4</sub>, 10–20&nbsp;A</td><td>PV-Eingang nutzbar</td><td>1</td></tr>
           <tr><td><svg class="icon"><use href="#i-battery"/></svg> LiFePO<sub>4</sub> Akku</td><td>12&nbsp;V 20–50&nbsp;Ah <em>oder</em> 24&nbsp;V 10–20&nbsp;Ah</td><td>Gr&ouml;&szlig;erer Puffer</td><td>1</td></tr>
-          <tr><td><svg class="icon"><use href="#i-inverter"/></svg> Reiner Sinus‑Inverter</td><td>300–600&nbsp;W Dauer</td><td>F&uuml;r Monitor/Netzteile</td><td>1</td></tr>
-          <tr><td><svg class="icon"><use href="#i-plug"/></svg> USB‑C PD Modul</td><td>100&nbsp;W</td><td>Direkt am Akku</td><td>1</td></tr>
-          <tr><td>Kleinteile</td><td>Sicherungen, DC‑Schalter, Messmodul, 4&nbsp;mm&sup2; Kabel</td><td>Inklusive Geh&auml;use</td><td>—</td></tr>
+          <tr><td><svg class="icon"><use href="#i-inverter"/></svg> Reiner Sinus-Inverter</td><td>300–600&nbsp;W Dauer</td><td>F&uuml;r Monitor/Netzteile</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-plug"/></svg> USB-C PD Modul</td><td>100&nbsp;W</td><td>Direkt am Akku</td><td>1</td></tr>
+          <tr><td>Kleinteile</td><td>Sicherungen, DC-Schalter, Messmodul, 4&nbsp;mm&sup2; Kabel</td><td>Inklusive Geh&auml;use</td><td>—</td></tr>
         </tbody>
       </table>
+
+      <div class="callout">
+        <strong>Empfohlene konkrete Produkte (Beispiele):</strong>
+        <ul>
+          <li><strong>Generator:</strong> E‑Bike‑Nabenmotor (Front/Heck) als 3‑Phasen‑Generator.</li>
+          <li><strong>Gleichrichter:</strong> Brücke <em>KBPC5010</em> (50 A / 1000 V) auf Kühlkörper.</li>
+          <li><strong>MPPT:</strong> <em>Victron SmartSolar MPPT 75/15</em> (für 12/24 V LiFePO<sub>4</sub>).</li>
+          <li><strong>Inverter:</strong> Reiner Sinus 300–600 W (z. B. 12/375 VA‑Klasse).</li>
+        </ul>
+      </div>
 
       <h3>Variante C – Netzeinspeiser (nur Fachbetrieb)</h3>
       <table class="parts">
         <thead><tr><th>Bauteil</th><th>Spezifikation</th><th>Hinweis</th><th>Menge</th></tr></thead>
         <tbody>
-          <tr><td><svg class="icon"><use href="#i-rectifier"/></svg> Generator &amp; DC‑Wandler</td><td>Gleichspannung im PV‑Fenster (z.&nbsp;B. 30–60&nbsp;V)</td><td>Strombegrenzung!</td><td>1</td></tr>
-          <tr><td><svg class="icon"><use href="#i-microinv"/></svg> Mikro‑Wechselrichter</td><td>VDE‑konform, Anti‑Islanding</td><td>Nur zertifizierte Ger&auml;te</td><td>1</td></tr>
-          <tr><td><svg class="icon"><use href="#i-shield"/></svg> Schutz &amp; Anmeldung</td><td>Normen/Netzbetreiber</td><td>&Uuml;ber Elektro‑Fachbetrieb</td><td>—</td></tr>
+          <tr><td><svg class="icon"><use href="#i-rectifier"/></svg> Generator &amp; DC-Wandler</td><td>Gleichspannung im PV-Fenster (z.&nbsp;B. 30–60&nbsp;V)</td><td>Strombegrenzung!</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-microinv"/></svg> Mikro-Wechselrichter</td><td>VDE-konform, Anti-Islanding</td><td>Nur zertifizierte Ger&auml;te</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-shield"/></svg> Schutz &amp; Anmeldung</td><td>Normen/Netzbetreiber</td><td>&Uuml;ber Elektro-Fachbetrieb</td><td>—</td></tr>
         </tbody>
       </table>
 
-      <div class="callout"><strong>Nachhaltig einkaufen:</strong> Viele Teile lassen sich gebraucht beschaffen (Motor, Trainer, Akku‑Geh&auml;use). Achte auf <em>LiFePO<sub>4</sub></em> statt Blei – haltbarer &amp; umweltfreundlicher.</div>
+      <div class="callout">
+        <strong>Empfohlene konkrete Produkte (Beispiele, nur mit Fachbetrieb):</strong>
+        <ul>
+          <li><strong>Mikro‑Wechselrichter:</strong> <em>Hoymiles HM‑300/350/400 (1‑in‑1)</em>, VDE‑AR‑N 4105‑konform.</li>
+          <li><strong>DC‑Anpassung:</strong> Buck/Boost‑Wandler mit Strombegrenzung, um die Generatorspannung in das PV‑Eingangsfenster des Inverters zu bringen.</li>
+        </ul>
+        <div class="muted">Achtung: Normen/Anmeldung beachten, Installation durch Elektro‑Fachbetrieb.</div>
+      </div>
+
+      <div class="callout"><strong>Nachhaltig einkaufen:</strong> Viele Teile lassen sich gebraucht beschaffen (Motor, Trainer, Akku-Geh&auml;use). Achte auf <em>LiFePO<sub>4</sub></em> statt Blei – haltbarer &amp; umweltfreundlicher.</div>
     </section>
 
     <section id="werkzeug" class="card">
@@ -282,12 +313,25 @@
         <li>Bohrmaschine/Metallbohrer f&uuml;r Halterungen</li>
         <li>Seitenschneider, Crimpzange, Schrumpfschl&auml;uche</li>
         <li><svg class="icon"><use href="#i-multimeter"/></svg> Multimeter (Spannung/Strom/Leistung)</li>
-        <li>Kabelbinder, rutschfeste Unterlage, ggf. Holz/Alu‑Profile</li>
+        <li>Kabelbinder, rutschfeste Unterlage, ggf. Holz/Alu-Profile</li>
       </ul>
     </section>
 
+    <section id="starter" class="card">
+      <h2>Starter‑BOM: Nur Halterung + Generator (günstig)</h2>
+      <ul>
+        <li><strong>Rollentrainer (Wheel‑on, gebraucht):</strong> z. B. Tacx Blue Matic T2650 – stabile Fahrradaufnahme.</li>
+        <li><strong>Generator:</strong> MY1016 Bürsten‑DC‑Motor, 24 V/300 W (Scooter‑Motor) – liefert direkt Gleichspannung.</li>
+        <li><strong>Zahnriemen‑Antrieb:</strong> HTD‑5M Zahnriemen 15 mm + 2 Riemenscheiben (ca. 1:1 Übersetzung; 20T/50–60T je nach Rollendrehzahl).</li>
+        <li><strong>Motorhalter:</strong> 3–4 mm Alu‑Winkel mit <em>Langlöchern</em> zur Riemenspannung, M6/M8 Schrauben, Unterleg‑/Federscheiben.</li>
+        <li><strong>Schutz:</strong> Riemenschutz (Blech/Holz/3D‑Druck) – Finger/Kleidung sichern.</li>
+        <li><strong>Test‑Last (optional):</strong> 12 V/21 W Auto‑Lampe + Multimeter für erste Messungen.</li>
+      </ul>
+      <div class="warning"><strong>Tipp:</strong> Für den ersten Lauf brauchst du nur die Mechanik. Elektronik (Regler/Akku/USB‑C) kannst du später ergänzen.</div>
+    </section>
+
     <section id="bau" class="card steps">
-      <h2>Bau‑Schritte (allgemein verst&auml;ndlich)</h2>
+      <h2>Bau-Schritte (allgemein verst&auml;ndlich)</h2>
 
       <div class="step">
         <div class="iconbox"><svg class="icon"><use href="#i-bike"/></svg></div>
@@ -305,7 +349,7 @@
         <div class="iconbox"><svg class="icon"><use href="#i-gear"/></svg></div>
         <div>
           <h3>Generator anbringen</h3>
-          <p>Montiere die <strong>Reibrolle</strong> (oder Riemen) am Generator so, dass sie fest, aber nicht zu stark gegen den Reifen gedr&uuml;ckt wird. Eine einfache L‑Halterung aus Alu/ Holz reicht oft.</p>
+          <p>Montiere die <strong>Reibrolle</strong> (oder Riemen) am Generator so, dass sie fest, aber nicht zu stark gegen den Reifen gedr&uuml;ckt wird. Eine einfache L-Halterung aus Alu/ Holz reicht oft.</p>
           <div class="pictos">
             <span class="badge"><svg class="icon"><use href="#i-clip"/></svg>Richtiger Anpressdruck</span>
             <span class="badge"><svg class="icon"><use href="#i-gear"/></svg>Flucht pr&uuml;fen</span>
@@ -317,8 +361,8 @@
         <div class="iconbox"><svg class="icon"><use href="#i-rectifier"/></svg></div>
         <div>
           <h3>Gleichrichten &amp; Laden</h3>
-          <p><strong>Variante A:</strong> DC‑Motor liefert schon Gleichspannung – &uuml;ber <em>Step‑Down/Up</em> sauber auf 13.8–14.4&nbsp;V f&uuml;r LiFePO<sub>4</sub> regeln.<br/>
-             <strong>Variante B:</strong> 3‑Phasen vom Nabenmotor zuerst &uuml;ber <em>Br&uuml;ckengleichrichter</em>, dann in einen <em>MPPT‑Laderegler</em>.</p>
+          <p><strong>Variante A:</strong> DC-Motor liefert schon Gleichspannung – &uuml;ber <em>Step-Down/Up</em> sauber auf 13.8–14.4&nbsp;V f&uuml;r LiFePO<sub>4</sub> regeln.<br/>
+             <strong>Variante B:</strong> 3-Phasen vom Nabenmotor zuerst &uuml;ber <em>Br&uuml;ckengleichrichter</em>, dann in einen <em>MPPT-Laderegler</em>.</p>
           <div class="pictos">
             <span class="badge"><svg class="icon"><use href="#i-fuse"/></svg>Sicherung in Plusleitung</span>
             <span class="badge"><svg class="icon"><use href="#i-battery"/></svg>Polarit&auml;t beachten</span>
@@ -330,9 +374,9 @@
         <div class="iconbox"><svg class="icon"><use href="#i-battery"/></svg></div>
         <div>
           <h3>Pufferakku &amp; Ausg&auml;nge</h3>
-          <p>Verbinde Akku &uuml;ber Sicherung (z.&nbsp;B. 10&nbsp;A bei 12&nbsp;V‑System). Schlie&szlig;e <strong>USB‑C PD 100&nbsp;W</strong> f&uuml;r Laptops an 12/24&nbsp;V an. Optional <strong>reiner Sinus‑Inverter</strong> f&uuml;r 230&nbsp;V‑Ger&auml;te.</p>
+          <p>Verbinde Akku &uuml;ber Sicherung (z.&nbsp;B. 10&nbsp;A bei 12&nbsp;V-System). Schlie&szlig;e <strong>USB-C PD 100&nbsp;W</strong> f&uuml;r Laptops an 12/24&nbsp;V an. Optional <strong>reiner Sinus-Inverter</strong> f&uuml;r 230&nbsp;V-Ger&auml;te.</p>
           <div class="pictos">
-            <span class="badge"><svg class="icon"><use href="#i-plug"/></svg>USB‑C PD</span>
+            <span class="badge"><svg class="icon"><use href="#i-plug"/></svg>USB-C PD</span>
             <span class="badge"><svg class="icon"><use href="#i-inverter"/></svg>230&nbsp;V (optional)</span>
           </div>
         </div>
@@ -354,7 +398,7 @@
         <div class="iconbox"><svg class="icon"><use href="#i-tools"/></svg></div>
         <div>
           <h3>Feinabstimmung Last</h3>
-          <p>Mit Gangwahl und DC‑Regler die Tret‑Last so einstellen, dass die <strong>Leistung konstant</strong> bleibt (z.&nbsp;B. 70&nbsp;W). Zu schwere Last vermeiden &rarr; ineffizient &amp; erm&uuml;dend.</p>
+          <p>Mit Gangwahl und DC-Regler die Tret-Last so einstellen, dass die <strong>Leistung konstant</strong> bleibt (z.&nbsp;B. 70&nbsp;W). Zu schwere Last vermeiden &rarr; ineffizient &amp; erm&uuml;dend.</p>
         </div>
       </div>
 
@@ -362,11 +406,11 @@
         <div class="iconbox"><svg class="icon"><use href="#i-inverter"/></svg></div>
         <div>
           <h3>Optional: Netzeinspeisen (Variante&nbsp;C)</h3>
-          <p>Nur mit <strong>zugelassenem Mikro‑Inverter</strong> &amp; Fachbetrieb. Generator‑DC auf PV‑Eingang anpassen, Inverter vorschriftsgem&auml;&szlig; an Steckdose/Unterverteilung anschlie&szlig;en.</p>
+          <p>Nur mit <strong>zugelassenem Mikro-Inverter</strong> &amp; Fachbetrieb. Generator-DC auf PV-Eingang anpassen, Inverter vorschriftsgem&auml;&szlig; an Steckdose/Unterverteilung anschlie&szlig;en.</p>
         </div>
       </div>
 
-      <div class="warning"><strong>Sicherheit:</strong> 12–24&nbsp;V DC ist nicht harmlos (Kurzschluss/Hitze). 230&nbsp;V AC darf nur mit geeigneter Schutztechnik betrieben werden. Setze <strong>korrekte Leitungsquerschnitte</strong> (mind. 2.5&nbsp;mm&sup2; bei &gt;10&nbsp;A), <strong>Fusions‑/KFZ‑Sicherungen</strong> und feste Zugentlastungen.</div>
+      <div class="warning"><strong>Sicherheit:</strong> 12–24&nbsp;V DC ist nicht harmlos (Kurzschluss/Hitze). 230&nbsp;V AC darf nur mit geeigneter Schutztechnik betrieben werden. Setze <strong>korrekte Leitungsquerschnitte</strong> (mind. 2.5&nbsp;mm&sup2; bei &gt;10&nbsp;A), <strong>Fusions-/KFZ-Sicherungen</strong> und feste Zugentlastungen.</div>
     </section>
 
     <section id="schema" class="card">
@@ -390,11 +434,11 @@
           <line class="b" x1="370" y1="100" x2="430" y2="100"/>
           <rect class="box" x="430" y="40" width="150" height="60"/><text class="t" x="505" y="75" text-anchor="middle">Gleichrichter</text>
           <line class="b" x1="505" y1="100" x2="505" y2="170"/>
-          <rect class="box" x="430" y="170" width="150" height="60"/><text class="t" x="505" y="205" text-anchor="middle">DC‑Regler / MPPT</text>
+          <rect class="box" x="430" y="170" width="150" height="60"/><text class="t" x="505" y="205" text-anchor="middle">DC-Regler / MPPT</text>
           <line class="b" x1="580" y1="200" x2="650" y2="200"/>
           <rect class="box" x="650" y="160" width="140" height="80"/><text class="t" x="720" y="205" text-anchor="middle">LiFePO₄ Akku</text>
           <line class="b" x1="720" y1="160" x2="720" y2="120"/>
-          <rect class="box" x="650" y="40" width="140" height="60"/><text class="t" x="720" y="75" text-anchor="middle">USB‑C PD</text>
+          <rect class="box" x="650" y="40" width="140" height="60"/><text class="t" x="720" y="75" text-anchor="middle">USB-C PD</text>
           <line class="b" x1="720" y1="120" x2="860" y2="120"/>
           <rect class="box" x="860" y="80" width="100" height="80"/><text class="t" x="910" y="125" text-anchor="middle">Laptop</text>
           <line class="b" x1="720" y1="200" x2="860" y2="200"/>
@@ -415,9 +459,9 @@
           <rect x="10" y="10" width="960" height="200" rx="16" ry="16" fill="#0b0f14" stroke="#2a3240"/>
           <rect class="box" x="30" y="40" width="160" height="60"/><text class="t" x="110" y="75" text-anchor="middle">Generator</text>
           <line class="b" x1="190" y1="70" x2="280" y2="70"/>
-          <rect class="box" x="280" y="40" width="200" height="60"/><text class="t" x="380" y="75" text-anchor="middle">DC‑Wandler auf PV‑Fenster</text>
+          <rect class="box" x="280" y="40" width="200" height="60"/><text class="t" x="380" y="75" text-anchor="middle">DC-Wandler auf PV-Fenster</text>
           <line class="b" x1="480" y1="70" x2="600" y2="70"/>
-          <rect class="box" x="600" y="40" width="170" height="60"/><text class="t" x="685" y="75" text-anchor="middle">Mikro‑Inverter</text>
+          <rect class="box" x="600" y="40" width="170" height="60"/><text class="t" x="685" y="75" text-anchor="middle">Mikro-Inverter</text>
           <line class="b" x1="770" y1="70" x2="900" y2="70"/>
           <rect class="box" x="860" y="110" width="120" height="60"/><text class="t" x="920" y="147" text-anchor="middle">Steckdose</text>
           <path class="b" d="M900 70c0 0 30 0 30 30v40"/>
@@ -426,12 +470,12 @@
     </section>
 
     <section id="leistung" class="card">
-      <h2>Leistungs‑Check &amp; Dimensionierung</h2>
+      <h2>Leistungs-Check &amp; Dimensionierung</h2>
       <ul>
-        <li><strong>Menschen‑Leistung:</strong> viele halten 60–100&nbsp;W &uuml;ber 30–60&nbsp;min; trainierte mehr. Plane konservativ.</li>
+        <li><strong>Menschen-Leistung:</strong> viele halten 60–100&nbsp;W &uuml;ber 30–60&nbsp;min; trainierte mehr. Plane konservativ.</li>
         <li><strong>Kabel &amp; Sicherung:</strong> 100&nbsp;W bei 12&nbsp;V &rarr; ~8.5&nbsp;A. Nutze 2.5&nbsp;mm&sup2; Kabel, 10&nbsp;A Sicherung.</li>
-        <li><strong>Akku‑Gr&ouml;&szlig;e:</strong> 12&nbsp;V&nbsp;&times;&nbsp;20&nbsp;Ah &rarr; ~240&nbsp;Wh (nutzbar ~200&nbsp;Wh). Genug f&uuml;r ~2–3&nbsp;h Laptop‑Betrieb (sparsam).</li>
-        <li><strong>Wirkungsgrad‑Kette:</strong> Generator 75&nbsp;% × Gleichrichter/Regler 90&nbsp;% × Akku 95&nbsp;% × Inverter 88&nbsp;% &approx; <strong>~56&nbsp;%</strong>.</li>
+        <li><strong>Akku-Gr&ouml;&szlig;e:</strong> 12&nbsp;V&nbsp;&times;&nbsp;20&nbsp;Ah &rarr; ~240&nbsp;Wh (nutzbar ~200&nbsp;Wh). Genug f&uuml;r ~2–3&nbsp;h Laptop-Betrieb (sparsam).</li>
+        <li><strong>Wirkungsgrad-Kette:</strong> Generator 75&nbsp;% × Gleichrichter/Regler 90&nbsp;% × Akku 95&nbsp;% × Inverter 88&nbsp;% &approx; <strong>~56&nbsp;%</strong>.</li>
       </ul>
     </section>
 
@@ -441,18 +485,18 @@
         <li><strong>Riemen/Anpressdruck:</strong> Schlupf vermeidet man durch trockenen Reifen und ausreichend Druck ohne Walkarbeit.</li>
         <li><strong>Hei&szlig;e Bauteile:</strong> Gleichrichter/Regler auf K&uuml;hlk&ouml;rper, ggf. L&uuml;fter.</li>
         <li><strong>Brummen am Inverter:</strong> Last gl&auml;tten (Akku zwischen Generator und Inverter).</li>
-        <li><strong>Laptop geht aus:</strong> USB‑C PD auf 20&nbsp;V/5&nbsp;A (100&nbsp;W) einstellen; gutes Kabel verwenden.</li>
+        <li><strong>Laptop geht aus:</strong> USB-C PD auf 20&nbsp;V/5&nbsp;A (100&nbsp;W) einstellen; gutes Kabel verwenden.</li>
         <li><strong>Ger&auml;usch:</strong> Reibrolle gummiert/ged&auml;mmt, Lager fetten.</li>
       </ul>
     </section>
 
     <section id="recht" class="card">
       <h2>Netzeinspeisung &amp; Rechtliches</h2>
-      <p>Wenn du <strong>ins Hausnetz einspeisen</strong> willst: Nur mit <strong>zugelassenem Mikro‑Wechselrichter</strong> (Anti‑Islanding, Normenkonformit&auml;t) und <strong>Fachbetrieb</strong>. Vorschriften (z.&nbsp;B. VDE‑AR‑N&nbsp;4105 in DE) sowie Vorgaben deines Netzbetreibers beachten. Unsachgem&auml;&szlig;e Einspeisung ist gef&auml;hrlich und unzul&auml;ssig.</p>
+      <p>Wenn du <strong>ins Hausnetz einspeisen</strong> willst: Nur mit <strong>zugelassenem Mikro-Wechselrichter</strong> (Anti-Islanding, Normenkonformit&auml;t) und <strong>Fachbetrieb</strong>. Vorschriften (z.&nbsp;B. VDE-AR-N&nbsp;4105 in DE) sowie Vorgaben deines Netzbetreibers beachten. Unsachgem&auml;&szlig;e Einspeisung ist gef&auml;hrlich und unzul&auml;ssig.</p>
     </section>
 
     <footer>
-      <p>Version 1.0 – Diese Anleitung ist bewusst pragmatisch gehalten. Verwende gesunden Menschenverstand, sichere Elektrik und frage Profis, wenn du unsicher bist.</p>
+      <p>Version 1.1 – Jetzt mit konkreten Produktbeispielen. Diese Anleitung ist bewusst pragmatisch gehalten. Verwende gesunden Menschenverstand, sichere Elektrik und frage Profis, wenn du unsicher bist.</p>
     </footer>
   </div>
 </body>
