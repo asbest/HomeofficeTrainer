@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Home Office Trainer – Build Guide, Variants & Products</title>
+  <style>
+    :root{
+      --bg:#0b0d10;
+      --card:#11151a;
+      --ink:#e7edf3;
+      --muted:#9fb1c1;
+      --accent:#5fd0a5;
+      --accent-2:#7db6ff;
+      --warn:#f7b733;
+      --danger:#ff6b6b;
+      --ok:#6bff9a;
+      --line:#1d242c;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";}
+    a{color:var(--accent-2);text-decoration:none} a:hover{text-decoration:underline}
+    .wrap{max-width:1000px;margin:0 auto;padding:24px}
+    header{display:grid;gap:10px;align-items:center;margin:12px 0 24px 0}
+    .title{font-size:clamp(28px, 4vw, 44px);font-weight:800;letter-spacing:.2px;line-height:1.1}
+    .subtitle{color:var(--muted);font-size:clamp(14px, 2.2vw, 18px)}
+    .grid{display:grid;gap:18px}
+    .grid.cols-2{grid-template-columns:repeat(2, minmax(0,1fr))}
+    @media (max-width:860px){ .grid.cols-2{grid-template-columns:1fr} }
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02)), var(--card); border:1px solid var(--line); border-radius:18px; padding:18px 18px}
+    h2{font-size:clamp(22px, 3vw, 28px);margin:8px 0 8px 0}
+    h3{font-size:clamp(18px, 2.4vw, 22px);margin:12px 0 8px 0}
+    p{margin:10px 0}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:var(--ink);background:#0f1318}
+    .pill .tag{font-size:12px;color:var(--muted)}
+    .legend{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+    .muted{color:var(--muted)}
+    .ok{color:var(--ok)}
+    .warning{border:1px dashed var(--warn);background:rgba(247,183,51,0.08);padding:12px;border-radius:12px}
+    .danger{border:1px dashed var(--danger);background:rgba(255,107,107,0.08);padding:12px;border-radius:12px}
+    .flex{display:flex;gap:12px;align-items:flex-start}
+    .icon{width:22px;height:22px;flex:0 0 22px;display:inline-block;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .icon.big{width:28px;height:28px}
+    .iconbox{width:36px;height:36px;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;margin-right:10px}
+    .parts{width:100%;border-collapse:collapse;margin:8px 0 0 0}
+    .parts th,.parts td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+    .parts th{color:var(--muted);font-weight:600}
+    .steps{counter-reset:step}
+    .step{display:flex;gap:14px;align-items:flex-start;padding:14px;border:1px solid var(--line);border-radius:16px;margin:10px 0;background:#0f1419}
+    .step::before{counter-increment:step;content:counter(step);display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--accent);color:#062a1e;font-weight:800;margin-right:6px;flex:0 0 32px}
+    .step .pictos{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:12px}
+    .schema{width:100%;height:auto;border:1px solid var(--line);border-radius:14px;margin:12px 0;background:#0f1319}
+    .schema svg{width:100%;height:auto;display:block}
+    .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .kpi .card{padding:14px}
+    .kpi strong{font-size:22px}
+    .callout{border-left:4px solid var(--accent);padding:8px 12px;background:#0e1419;border-radius:8px;margin:8px 0}
+    .toc{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:10px}
+    .toc a{display:inline-block;padding:8px 10px;border:1px solid var(--line);border-radius:10px}
+    footer{margin:32px 0 12px;color:var(--muted);font-size:13px}
+    @media print{
+      body{background:white;color:black}
+      .card,.step{break-inside:avoid}
+      a{text-decoration:none;color:black}
+      .schema{border-color:#ccc;background:#fff}
+      .warning,.danger{background:#fff;border-color:#999}
+    }
+  </style>
+
+  <!-- Minimal IKEA-like pictogram sprite -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="i-bike" viewBox="0 0 24 24">
+      <circle cx="6" cy="18" r="3"></circle>
+      <circle cx="18" cy="18" r="3"></circle>
+      <path d="M6 18l3-8h6l3 8M9 10l3 4M12 14l3-4"></path>
+      <path d="M12 6h3M11 6a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+    </symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24">
+      <path d="M8 8l8 8M15 3a5 5 0 0 0 6 6l-5 5-6-6 5-5z"></path>
+      <circle cx="4" cy="20" r="2"></circle>
+    </symbol>
+    <symbol id="i-battery" viewBox="0 0 24 24">
+      <rect x="3" y="7" width="16" height="10" rx="2"></rect>
+      <rect x="19" y="10" width="2" height="4" rx="1"></rect>
+      <path d="M7 12h6"></path>
+      <path d="M6 12h1M14 12h2"></path>
+    </symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24">
+      <path d="M3 21c6-8 12-12 18-15-2 6-7 12-15 15" />
+      <path d="M9 15c0-4 2-7 6-9" />
+    </symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24">
+      <path d="M13 2L3 14h7l-1 8L21 9h-7l-1-7z"></path>
+    </symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24">
+      <path d="M7 6v6M17 6v6M5 12h14"></path>
+      <path d="M12 12v8"></path>
+      <rect x="9" y="2" width="6" height="6" rx="2"></rect>
+    </symbol>
+    <symbol id="i-inverter" viewBox="0 0 24 24">
+      <rect x="3" y="5" width="18" height="14" rx="3"></rect>
+      <path d="M6 12c2-3 4 3 6 0s4 3 6 0"></path>
+    </symbol>
+    <symbol id="i-rectifier" viewBox="0 0 24 24">
+      <rect x="3" y="6" width="18" height="12" rx="2"></rect>
+      <path d="M6 12h12M9 9l3 3-3 3"></path>
+    </symbol>
+    <symbol id="i-microinv" viewBox="0 0 24 24">
+      <rect x="4" y="5" width="16" height="12" rx="2"></rect>
+      <path d="M6 8h12M8 12h8"></path>
+      <path d="M6 18h12"></path>
+    </symbol>
+    <symbol id="i-multimeter" viewBox="0 0 24 24">
+      <rect x="5" y="3" width="14" height="18" rx="2"></rect>
+      <circle cx="12" cy="10" r="3"></circle>
+      <path d="M9 17h6"></path>
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24">
+      <path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"></path>
+    </symbol>
+    <symbol id="i-info" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M12 8v.01M12 12v4"></path>
+    </symbol>
+    <symbol id="i-tools" viewBox="0 0 24 24">
+      <path d="M7 7l10 10M8 2l2 2-2 4-2 2-2-2 2-2 4-2zM14 12l6 6-2 2-6-6z"></path>
+    </symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24">
+      <path d="M10 2h4l1 3 3 1v4l-3 1-1 3h-4l-1-3-3-1V6l3-1 1-3z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </symbol>
+    <symbol id="i-fuse" viewBox="0 0 24 24">
+      <rect x="6" y="7" width="12" height="10" rx="2"></rect>
+      <path d="M9 9h6M9 15h6"></path>
+    </symbol>
+    <symbol id="i-eco" viewBox="0 0 24 24">
+      <path d="M4 18c10-2 12-10 16-14 0 8-4 16-16 14z"></path>
+    </symbol>
+    <symbol id="i-clip" viewBox="0 0 24 24">
+      <path d="M7 13l6-6a3 3 0 1 1 4 4l-7 7a5 5 0 0 1-7-7l6-6"></path>
+    </symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24">
+      <path d="M3 7l4 3 5-5 5 5 4-3v10H3z"></path>
+    </symbol>
+    <symbol id="i-piggy" viewBox="0 0 24 24">
+      <path d="M3 14c0-5 4-8 9-8 4 0 7 2 8 5h1v3h-2c-1 2-3 4-7 4-4 0-8-2-9-4z"></path>
+      <circle cx="10" cy="11" r="1"></circle>
+    </symbol>
+  </svg>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="legend">
+        <span class="pill"><svg class="icon"><use href="#i-leaf"/></svg><span class="tag">Human‑powered eco power</span></span>
+        <span class="pill"><svg class="icon"><use href="#i-bolt"/></svg><span class="tag">~100&nbsp;W pedaling possible</span></span>
+        <span class="pill"><svg class="icon"><use href="#i-shield"/></svg><span class="tag">Observe safety notes</span></span>
+      </div>
+      <div class="title">Home Office Trainer</div>
+      <div class="subtitle">Modular pedal power plant for laptops, monitors &amp; small devices – build guide with variants, parts lists, <strong>concrete products</strong> &amp; pictograms</div>
+      <ul class="toc">
+        <li><a href="#idea">Idea</a></li>
+        <li><a href="#variants">Variants</a></li>
+        <li><a href="#parts">Parts lists</a></li>
+        <li><a href="#tools">Tools</a></li>
+        <li><a href="#starter">Starter BOM</a></li>
+        <li><a href="#build">Build steps</a></li>
+        <li><a href="#schematics">Schematics</a></li>
+        <li><a href="#performance">Performance check</a></li>
+        <li><a href="#tips">Tips &amp; troubleshooting</a></li>
+        <li><a href="#legal">Grid feed‑in &amp; legal</a></li>
+      </ul>
+    </header>
+
+    <section id="idea" class="card">
+      <h2><svg class="icon big"><use href="#i-info"/></svg> Idea in 30&nbsp;seconds</h2>
+      <p>A regular bicycle + roller trainer + generator = power for your desk. Many people can pedal <strong>60–100&nbsp;W</strong> for 30–60 minutes. With a small buffer battery and basic electronics you can run a <strong>laptop (~50&nbsp;W)</strong> and a <strong>monitor (~25&nbsp;W)</strong>—at least intermittently or as a mix of battery + pedaling.</p>
+      <div class="kpi">
+        <div class="card">
+          <div class="flex"><div class="iconbox"><svg class="icon"><use href="#i-bolt"/></svg></div>
+            <div><strong>~100&nbsp;W mechanical</strong><div class="muted">realistic 60–100&nbsp;W for 30–60&nbsp;min</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="flex"><div class="iconbox"><svg class="icon"><use href="#i-battery"/></svg></div>
+            <div><strong>~50–70&nbsp;W electric</strong><div class="muted">after losses; enough for a laptop</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="flex"><div class="iconbox"><svg class="icon"><use href="#i-eco"/></svg></div>
+            <div><strong>quiet &amp; circular</strong><div class="muted">many parts can be second‑hand</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="warning">
+        <strong>Note:</strong> Net output depends on rider, ergonomics and electronics. Budget for a <strong>50–70&nbsp;%</strong> overall efficiency from pedal to usable electricity.
+      </div>
+    </section>
+
+    <section id="variants" class="grid cols-2">
+      <div class="card">
+        <h2><svg class="icon big"><use href="#i-piggy"/></svg> Variant A – Budget &amp; simple</h2>
+        <p>Core: <strong>24&nbsp;V DC permanent‑magnet motor</strong> as generator (e.g., scooter/treadmill), <strong>12&nbsp;V LiFePO<sub>4</sub> battery</strong> as buffer, <strong>USB‑C PD car charger</strong> for laptop. Optional small <strong>pure‑sine inverter</strong> (150–300&nbsp;W) for 230&nbsp;V.</p>
+        <div class="legend">
+          <span class="badge"><svg class="icon"><use href="#i-clip"/></svg>Upcycling possible</span>
+          <span class="badge"><svg class="icon"><use href="#i-gear"/></svg>Minimal electronics</span>
+        </div>
+      </div>
+      <div class="card">
+        <h2><svg class="icon big"><use href="#i-crown"/></svg> Variant B – Comfort &amp; feature‑rich</h2>
+        <p>Core: <strong>E‑bike hub motor</strong> as 3‑phase generator + <strong>rectifier</strong> + <strong>MPPT charge controller (12/24&nbsp;V)</strong> for optimum yield. <strong>LiFePO<sub>4</sub> battery</strong> + <strong>pure sine inverter 300–600&nbsp;W</strong> for mains devices.</p>
+        <div class="legend">
+          <span class="badge"><svg class="icon"><use href="#i-battery"/></svg>Bigger buffer</span>
+          <span class="badge"><svg class="icon"><use href="#i-rectifier"/></svg>MPPT for efficiency</span>
+        </div>
+      </div>
+      <div class="card">
+        <h2><svg class="icon big"><use href="#i-microinv"/></svg> Variant C – Grid feed‑in (with professional)</h2>
+        <p><strong>Only with a certified micro‑inverter</strong> (e.g., balcony PV class) and a <strong>licensed electrician</strong>: Generator → DC conditioning into PV window → <strong>micro inverter</strong> → wall socket. Anti‑islanding &amp; standards required.</p>
+        <div class="danger"><strong>Warning:</strong> Grid‑parallel operation must comply with standards (e.g., VDE‑AR‑N&nbsp;4105 in DE) and utility rules. Involve a professional.</div>
+      </div>
+      <div class="card">
+        <h2><svg class="icon big"><use href="#i-tools"/></svg> Ergonomics &amp; comfort add‑ons</h2>
+        <ul>
+          <li>Wheel‑on roller trainer or direct‑drive – stable &amp; quiet</li>
+          <li>Fine‑tune load via gear choice vs. electrical load</li>
+          <li>USB‑C PD 100&nbsp;W, 12&nbsp;V sockets, LED light, fan</li>
+          <li>Display (voltage/current/power), cadence sensor</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="parts" class="card">
+      <h2>Parts lists</h2>
+      <h3>Variant A – Budget &amp; simple</h3>
+      <table class="parts">
+        <thead><tr><th>Component</th><th>Specification</th><th>Note</th><th>Qty</th></tr></thead>
+        <tbody>
+          <tr><td><svg class="icon"><use href="#i-bike"/></svg> Roller trainer stand</td><td>Rear‑wheel, tire‑on roller</td><td>Cheap second‑hand</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-gear"/></svg> DC motor (generator)</td><td>Permanent magnet, 24&nbsp;V, 150–350&nbsp;W rated</td><td>Scooter/treadmill motors work well</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-gear"/></svg> Friction roller / belt kit</td><td>Roller Ø 30–50&nbsp;mm or V/HTD belt</td><td>Pressed onto rear tire</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-fuse"/></svg> Fuse + holder</td><td>10&nbsp;A (12&nbsp;V system)</td><td>Close to battery on + line</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-battery"/></svg> LiFePO<sub>4</sub> battery</td><td>12&nbsp;V, 10–20&nbsp;Ah</td><td>Durable, many cycles</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-rectifier"/></svg> DC‑DC charge regulator</td><td>Buck/boost to 13.8–14.4&nbsp;V</td><td>LiFePO<sub>4</sub> charge voltage</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-plug"/></svg> USB‑C PD car charger</td><td>100&nbsp;W (PD&nbsp;3.0)</td><td>Laptop/phone output</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-inverter"/></svg> Inverter (optional)</td><td>Pure sine 150–300&nbsp;W</td><td>Only if 230&nbsp;V needed</td><td>1</td></tr>
+          <tr><td>Small parts</td><td>2.5&nbsp;mm² cable, XT60/Anderson, ring lugs, zip ties</td><td>Neat &amp; safe wiring</td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Concrete product suggestions (examples; also used):</strong>
+        <ul>
+          <li><strong>Generator:</strong> PM brushed DC motor <em>MY1016</em>, 24 V / 300 W (scooter‑class).</li>
+          <li><strong>Roller trainer:</strong> Wheel‑on trainer, e.g., <em>Tacx Blue Matic T2650</em> (or similar by Elite/Minoura).</li>
+          <li><strong>Drive:</strong> <em>Gates PowerGrip HTD‑5M</em> timing belt (15 mm) + 2 pulleys (e.g., 20T on motor Ø10 mm; 50–60T on trainer roller shaft, as available).</li>
+          <li><strong>Electrics (later):</strong> Simple DC‑DC regulation to 13.8–14.4 V if you add a battery.</li>
+        </ul>
+        <div class="muted">Tip: For the very first spin you only need motor + belt + provisional bracket. Add battery/electronics later.</div>
+      </div>
+
+      <h3>Variant B – Comfort &amp; feature‑rich</h3>
+      <table class="parts">
+        <thead><tr><th>Component</th><th>Specification</th><th>Note</th><th>Qty</th></tr></thead>
+        <tbody>
+          <tr><td><svg class="icon"><use href="#i-bike"/></svg> Trainer + hub motor</td><td>E‑bike hub motor (without controller)</td><td>Used as 3‑phase generator</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-rectifier"/></svg> 3‑phase rectifier</td><td>&ge; 20&nbsp;A, &ge; 100&nbsp;V</td><td>Bridge rectifier</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-rectifier"/></svg> MPPT charge controller</td><td>12/24&nbsp;V LiFePO<sub>4</sub>, 10–20&nbsp;A</td><td>Use PV input</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-battery"/></svg> LiFePO<sub>4</sub> battery</td><td>12&nbsp;V 20–50&nbsp;Ah <em>or</em> 24&nbsp;V 10–20&nbsp;Ah</td><td>Larger buffer</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-inverter"/></svg> Pure sine inverter</td><td>300–600&nbsp;W continuous</td><td>Monitors/adapters</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-plug"/></svg> USB‑C PD module</td><td>100&nbsp;W</td><td>Directly from battery</td><td>1</td></tr>
+          <tr><td>Small parts</td><td>Fuses, DC switch, meter, 4&nbsp;mm² cable</td><td>Incl. enclosure</td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Concrete product suggestions (examples):</strong>
+        <ul>
+          <li><strong>Rectifier:</strong> bridge <em>KBPC5010</em> (50 A / 1000 V) on heatsink.</li>
+          <li><strong>MPPT:</strong> <em>Victron SmartSolar MPPT 75/15</em> (for 12/24 V LiFePO<sub>4</sub>).</li>
+          <li><strong>Inverter:</strong> pure sine 300–600 W (e.g., 12/375 VA class).</li>
+        </ul>
+      </div>
+
+      <h3>Variant C – Grid feed‑in (pro only)</h3>
+      <table class="parts">
+        <thead><tr><th>Component</th><th>Specification</th><th>Note</th><th>Qty</th></tr></thead>
+        <tbody>
+          <tr><td><svg class="icon"><use href="#i-rectifier"/></svg> Generator &amp; DC conditioner</td><td>DC within PV input window (e.g., 30–60&nbsp;V)</td><td>Current limiting!</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-microinv"/></svg> Micro‑inverter</td><td>Grid‑code compliant, anti‑islanding</td><td>Certified devices only</td><td>1</td></tr>
+          <tr><td><svg class="icon"><use href="#i-shield"/></svg> Protection &amp; paperwork</td><td>Standards/utility registration</td><td>By licensed electrician</td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Concrete product suggestions (examples; pro only):</strong>
+        <ul>
+          <li><strong>Micro‑inverter:</strong> <em>Hoymiles HM‑300/350/400 (1‑in‑1)</em>, compliant with VDE‑AR‑N 4105 (Germany).</li>
+          <li><strong>DC conditioning:</strong> buck/boost with current limit to match the PV input window of the inverter.</li>
+        </ul>
+        <div class="muted">Note: Observe national codes and utility rules; installation by a qualified electrician.</div>
+      </div>
+
+      <div class="callout"><strong>Buy sustainably:</strong> Many parts can be sourced used (motor, trainer, battery case). Prefer <em>LiFePO<sub>4</sub></em> over lead‑acid—longer life, more eco‑friendly.</div>
+    </section>
+
+    <section id="tools" class="card">
+      <h2><svg class="icon big"><use href="#i-wrench"/></svg> Tools</h2>
+      <ul>
+        <li>Allen/box wrenches, screwdrivers</li>
+        <li>Drill + metal bits for brackets</li>
+        <li>Wire cutter, crimp tool, heat‑shrink</li>
+        <li><svg class="icon"><use href="#i-multimeter"/></svg> Multimeter (V/A/W)</li>
+        <li>Zip ties, non‑slip mat, wood/aluminum profiles</li>
+      </ul>
+    </section>
+
+    <section id="starter" class="card">
+      <h2>Starter BOM: Bracket + generator only (low cost)</h2>
+      <ul>
+        <li><strong>Roller trainer (wheel‑on, used):</strong> e.g., Tacx Blue Matic T2650 – stable bike mount.</li>
+        <li><strong>Generator:</strong> MY1016 brushed DC motor, 24 V/300 W (scooter motor) – direct DC output.</li>
+        <li><strong>Timing belt drive:</strong> HTD‑5M, 15 mm + 2 pulleys (near 1:1 ratio; ~20T / 50–60T per roller rpm).</li>
+        <li><strong>Motor bracket:</strong> 3–4 mm aluminum angle with <em>slots</em> for belt tension, M6/M8 hardware.</li>
+        <li><strong>Guard:</strong> belt cover (sheet/wood/3D‑print) – keep fingers &amp; clothes safe.</li>
+        <li><strong>Test load (optional):</strong> 12 V/21 W auto bulb + multimeter for first checks.</li>
+      </ul>
+      <div class="warning"><strong>Tip:</strong> For the first spin you only need the mechanics. Add DC regulator/battery/USB‑C later.</div>
+    </section>
+
+    <section id="build" class="card steps">
+      <h2>Build steps (plain language)</h2>
+
+      <div class="step">
+        <div class="iconbox"><svg class="icon"><use href="#i-bike"/></svg></div>
+        <div>
+          <h3>Stabilize the bike</h3>
+          <p>Mount the bicycle on a solid wheel‑on trainer. Normal tire pressure, clean rear tire. Ensure zero wobble.</p>
+          <div class="pictos">
+            <span class="badge"><svg class="icon"><use href="#i-shield"/></svg>Stable stance</span>
+            <span class="badge"><svg class="icon"><use href="#i-tools"/></svg>Check axle clamps</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="iconbox"><svg class="icon"><use href="#i-gear"/></svg></div>
+        <div>
+          <h3>Attach the generator</h3>
+          <p>Install the <strong>friction roller</strong> (or belt drive) so it presses firmly—but not excessively—on the tire. A simple L‑bracket made from aluminum/wood is often enough.</p>
+          <div class="pictos">
+            <span class="badge"><svg class="icon"><use href="#i-clip"/></svg>Correct contact pressure</span>
+            <span class="badge"><svg class="icon"><use href="#i-gear"/></svg>Check alignment</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="iconbox"><svg class="icon"><use href="#i-rectifier"/></svg></div>
+        <div>
+          <h3>Rectify &amp; charge</h3>
+          <p><strong>Variant A:</strong> DC motor already outputs DC—use a <em>buck/boost</em> to regulate to 13.8–14.4&nbsp;V for LiFePO<sub>4</sub>.<br/>
+             <strong>Variant B:</strong> Rectify the hub motor’s 3‑phase AC with a <em>bridge rectifier</em>, then feed an <em>MPPT charge controller</em>.</p>
+          <div class="pictos">
+            <span class="badge"><svg class="icon"><use href="#i-fuse"/></svg>Fuse on + line</span>
+            <span class="badge"><svg class="icon"><use href="#i-battery"/></svg>Observe polarity</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="iconbox"><svg class="icon"><use href="#i-battery"/></svg></div>
+        <div>
+          <h3>Buffer battery &amp; outputs</h3>
+          <p>Connect the battery through a fuse (e.g., 10&nbsp;A on a 12&nbsp;V system). Add a <strong>USB‑C PD 100&nbsp;W</strong> output for laptops. Optionally add a <strong>pure sine inverter</strong> for 230&nbsp;V devices.</p>
+          <div class="pictos">
+            <span class="badge"><svg class="icon"><use href="#i-plug"/></svg>USB‑C PD</span>
+            <span class="badge"><svg class="icon"><use href="#i-inverter"/></svg>230&nbsp;V (optional)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="iconbox"><svg class="icon"><use href="#i-multimeter"/></svg></div>
+        <div>
+          <h3>First power‑up</h3>
+          <p>Measure open‑circuit voltage, then add a small load (e.g., 20&nbsp;W). Pedal smoothly at 60–90&nbsp;rpm; watch voltage/temperature.</p>
+          <div class="pictos">
+            <span class="badge"><svg class="icon"><use href="#i-info"/></svg>Target: ~50–70&nbsp;W output</span>
+            <span class="badge"><svg class="icon"><use href="#i-eco"/></svg>Quiet operation</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="iconbox"><svg class="icon"><use href="#i-tools"/></svg></div>
+        <div>
+          <h3>Fine‑tune load</h3>
+          <p>Use gear choice and the DC regulator to keep <strong>power constant</strong> (e.g., ~70&nbsp;W). Avoid overly heavy load—inefficient and tiring.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="iconbox"><svg class="icon"><use href="#i-inverter"/></svg></div>
+        <div>
+          <h3>Optional: Grid feed‑in (Variant&nbsp;C)</h3>
+          <p>Only with a <strong>certified micro‑inverter</strong> and a professional. Match generator DC to the inverter’s PV input; connect per code to socket/sub‑panel.</p>
+        </div>
+      </div>
+
+      <div class="warning"><strong>Safety:</strong> 12–24&nbsp;V DC can still be hazardous (shorts/heat). 230&nbsp;V AC requires proper protection. Use <strong>adequate wire gauge</strong> (≥2.5&nbsp;mm² above 10&nbsp;A), <strong>automotive fuses</strong> and strain relief.</div>
+    </section>
+
+    <section id="schematics" class="card">
+      <h2>Schematics (simplified pictograms)</h2>
+      <div class="schema">
+        <!-- DC system schematic -->
+        <svg viewBox="0 0 980 280" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <style>
+              .b{fill:none;stroke:#88a;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+              .t{fill:#cfe3ff;font:14px/1.3 system-ui}
+              .box{fill:#11151a;stroke:#2a3240;stroke-width:2;rx:12;ry:12}
+              .port{fill:#2a3240}
+            </style>
+          </defs>
+          <rect x="10" y="10" width="960" height="260" rx="16" ry="16" fill="#0b0f14" stroke="#2a3240"/>
+          <!-- Bike/Generator -->
+          <rect class="box" x="30" y="60" width="140" height="80"/><text class="t" x="100" y="105" text-anchor="middle">Bike + roller</text>
+          <line class="b" x1="170" y1="100" x2="230" y2="100"/>
+          <rect class="box" x="230" y="60" width="140" height="80"/><text class="t" x="300" y="105" text-anchor="middle">Generator</text>
+          <line class="b" x1="370" y1="100" x2="430" y2="100"/>
+          <rect class="box" x="430" y="40" width="150" height="60"/><text class="t" x="505" y="75" text-anchor="middle">Rectifier</text>
+          <line class="b" x1="505" y1="100" x2="505" y2="170"/>
+          <rect class="box" x="430" y="170" width="150" height="60"/><text class="t" x="505" y="205" text-anchor="middle">DC regulator / MPPT</text>
+          <line class="b" x1="580" y1="200" x2="650" y2="200"/>
+          <rect class="box" x="650" y="160" width="140" height="80"/><text class="t" x="720" y="205" text-anchor="middle">LiFePO₄ battery</text>
+          <line class="b" x1="720" y1="160" x2="720" y2="120"/>
+          <rect class="box" x="650" y="40" width="140" height="60"/><text class="t" x="720" y="75" text-anchor="middle">USB‑C PD</text>
+          <line class="b" x1="720" y1="120" x2="860" y2="120"/>
+          <rect class="box" x="860" y="80" width="100" height="80"/><text class="t" x="910" y="125" text-anchor="middle">Laptop</text>
+          <line class="b" x1="720" y1="200" x2="860" y2="200"/>
+          <rect class="box" x="860" y="170" width="100" height="60"/><text class="t" x="910" y="205" text-anchor="middle">Inverter</text>
+        </svg>
+      </div>
+
+      <div class="schema">
+        <!-- Grid-tie schematic -->
+        <svg viewBox="0 0 980 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <style>
+              .b{fill:none;stroke:#88a;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+              .t{fill:#cfe3ff;font:14px/1.3 system-ui}
+              .box{fill:#11151a;stroke:#2a3240;stroke-width:2;rx:12;ry:12}
+            </style>
+          </defs>
+          <rect x="10" y="10" width="960" height="200" rx="16" ry="16" fill="#0b0f14" stroke="#2a3240"/>
+          <rect class="box" x="30" y="40" width="160" height="60"/><text class="t" x="110" y="75" text-anchor="middle">Generator</text>
+          <line class="b" x1="190" y1="70" x2="280" y2="70"/>
+          <rect class="box" x="280" y="40" width="200" height="60"/><text class="t" x="380" y="75" text-anchor="middle">DC conditioning (PV window)</text>
+          <line class="b" x1="480" y1="70" x2="600" y2="70"/>
+          <rect class="box" x="600" y="40" width="170" height="60"/><text class="t" x="685" y="75" text-anchor="middle">Micro‑inverter</text>
+          <line class="b" x1="770" y1="70" x2="900" y2="70"/>
+          <rect class="box" x="860" y="110" width="120" height="60"/><text class="t" x="920" y="147" text-anchor="middle">Socket</text>
+          <path class="b" d="M900 70c0 0 30 0 30 30v40"/>
+        </svg>
+      </div>
+    </section>
+
+    <section id="performance" class="card">
+      <h2>Performance check &amp; sizing</h2>
+      <ul>
+        <li><strong>Human output:</strong> many can sustain 60–100&nbsp;W for 30–60&nbsp;min; trained riders more. Be conservative.</li>
+        <li><strong>Cable &amp; fuse:</strong> 100&nbsp;W at 12&nbsp;V → ~8.5&nbsp;A. Use 2.5&nbsp;mm² wire, 10&nbsp;A fuse.</li>
+        <li><strong>Battery size:</strong> 12&nbsp;V × 20&nbsp;Ah ≈ 240&nbsp;Wh (usable ~200&nbsp;Wh). Enough for ~2–3&nbsp;h laptop time (frugal).</li>
+        <li><strong>Efficiency chain (example):</strong> Generator 75&nbsp;% × rectifier/regulator 90&nbsp;% × battery 95&nbsp;% × inverter 88&nbsp;% ≈ <strong>~56&nbsp;%</strong>.</li>
+      </ul>
+    </section>
+
+    <section id="tips" class="card">
+      <h2>Tips &amp; troubleshooting</h2>
+      <ul>
+        <li><strong>Belt/contact pressure:</strong> Avoid slip with a dry tire and sufficient pressure without tire squirm.</li>
+        <li><strong>Hot parts:</strong> Put rectifier/regulator on a heatsink; add a fan if needed.</li>
+        <li><strong>Inverter buzz:</strong> Smooth the load (battery between generator and inverter).</li>
+        <li><strong>Laptop drops out:</strong> Set USB‑C PD to 20&nbsp;V/5&nbsp;A (100&nbsp;W); use a quality cable.</li>
+        <li><strong>Noise:</strong> Rubberized/damped roller, grease bearings.</li>
+      </ul>
+    </section>
+
+    <section id="legal" class="card">
+      <h2>Grid feed‑in &amp; legal</h2>
+      <p>If you want to <strong>feed into the household grid</strong>: use only a <strong>certified micro‑inverter</strong> (anti‑islanding, grid‑code compliant) and a <strong>licensed electrician</strong>. Follow your country’s standards (e.g., VDE‑AR‑N&nbsp;4105 in Germany) and utility requirements. Improper feed‑in is dangerous and prohibited.</p>
+    </section>
+
+    <footer>
+      <p>Version 1.1 (EN) – Now with concrete product examples. This guide is intentionally pragmatic. Use common sense, safe wiring practices, and consult a pro if unsure.</p>
+    </footer>
+  </div>
+</body>
+</html>
