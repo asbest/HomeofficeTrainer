@@ -9,4 +9,5 @@ Die Idee ist, ein modulares Gerät zu entwickeln (=Homeoffice-Trainer), welches 
 Es soll eine allgemein verständliche und einfach umzusetzende Anleitung und ein Prototyp für den Homeoffice-Trainer entwickelt werden. Die Anleitung soll eine Liste der benötigten Teile enthalten. Diese sollen einfach zu beschaffen und möglichst preisgünstig sein. Idealerweise umweltfreundlich. Nach der Liste der benötigten Bauteile soll eine detaillierte Bauanleitung folgen, welche auch von technischen Laien verstanden werden kann. Diese soll durch Piktogramme (wie bei Ikea) illustriert werden.
 Es sollen mehrere Varianten dargestellt werden, bspw. billig, teuer, einfach umzusetzen, feature rich.
 
-
+## Anleitung
+https://asbest.github.io/HomeofficeTrainer/anleitung/homeoffice-trainer-guide.html
