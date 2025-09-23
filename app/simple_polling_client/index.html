@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Homeoffice Trainer Power Monitor</title>
+  <style>
+    :root{
+      --bg:#0b0e14; --card:#121826; --muted:#8a93a6; --text:#e6e9f2;
+      --accent:#6ee7b7; --accent2:#60a5fa; --warn:#f87171; --ok:#34d399;
+      --ring:#2a3142;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text); background:radial-gradient(1200px 600px at 80% -10%, #1b2233, transparent), var(--bg);
+      display:flex; align-items:center; justify-content:center; padding:24px;
+    }
+    .wrap{width:min(980px,100%); display:grid; gap:16px}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.02), transparent 60%), var(--card);
+      border:1px solid var(--ring); border-radius:18px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.25);
+    }
+    h1{margin:0 0 6px; font-size:22px; letter-spacing:.2px}
+    .muted{color:var(--muted)}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .grid{display:grid; gap:12px}
+    .grid.cols{grid-template-columns: 1fr 1fr}
+    label{font-size:12px; color:var(--muted)}
+    input, button, select{
+      appearance:none; border-radius:12px; border:1px solid var(--ring); background:#0e1422; color:var(--text);
+      padding:10px 12px; outline:none; transition:.2s border,.2s box-shadow;
+    }
+    input:focus, select:focus{border-color:var(--accent2); box-shadow:0 0 0 3px rgba(96,165,250,.25)}
+    button{
+      border:1px solid transparent; background:linear-gradient(180deg, rgba(255,255,255,.05), transparent), #111b2e;
+      cursor:pointer; font-weight:600;
+    }
+    button.primary{background:linear-gradient(180deg, rgba(255,255,255,.06), transparent), #0f2433; border-color:#1b3b5a}
+    button.primary:hover{filter:brightness(1.1)}
+    .pill{
+      padding:6px 10px; border-radius:999px; border:1px solid var(--ring); font-size:12px;
+      display:inline-flex; align-items:center; gap:6px;
+    }
+    .dot{width:8px;height:8px;border-radius:50%}
+    .ok{background:var(--ok)} .bad{background:var(--warn)} .idle{background:#a3a3a3}
+    .big{
+      font-size:42px; font-weight:800; letter-spacing:.3px;
+      display:flex; gap:16px; align-items:baseline; flex-wrap:wrap;
+    }
+    .unit{font-size:16px; color:var(--muted); font-weight:500}
+    canvas{width:100%; height:240px; display:block; border-radius:14px; background:#0b1220; border:1px solid var(--ring)}
+    .mini{font-size:12px}
+    .row.spread{justify-content:space-between}
+    .kv{display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-variant-numeric:tabular-nums}
+    .code{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#0b1220; border:1px solid var(--ring); padding:10px 12px; border-radius:12px; overflow:auto}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>⚡ ESP Power Monitor</h1>
+      <div class="row spread">
+        <div class="row" style="gap:14px">
+          <div class="grid">
+            <label for="ip">ESP-IP-Adresse</label>
+            <input id="ip" placeholder="z. B. 192.168.1.42" inputmode="numeric" />
+          </div>
+          <div class="grid" style="width:140px">
+            <label for="interval">Intervall (ms)</label>
+            <input id="interval" type="number" min="100" step="50" value="500" />
+          </div>
+          <button id="btnStart" class="primary">Start</button>
+          <button id="btnStop">Stop</button>
+          <div id="status" class="pill"><span class="dot idle"></span><span class="muted">Bereit</span></div>
+        </div>
+        <div class="mini muted">Endpoint: <span id="endpointPreview">—</span></div>
+      </div>
+    </div>
+
+    <div class="card grid cols">
+      <div>
+        <div class="big">
+          <span id="powerVal">—</span><span class="unit">W</span>
+          <span class="muted" style="font-weight:600">Power</span>
+        </div>
+        <div class="kv mini muted" style="margin-top:8px">
+          <div>Min</div><div id="powerMin">—</div>
+          <div>Max</div><div id="powerMax">—</div>
+          <div>Letztes Update</div><div id="lastUpdate">—</div>
+        </div>
+      </div>
+      <div>
+        <div class="big">
+          <span id="voltVal">—</span><span class="unit">V</span>
+          <span class="muted" style="font-weight:600">Voltage</span>
+        </div>
+        <div class="kv mini muted" style="margin-top:8px">
+          <div>Min</div><div id="voltMin">—</div>
+          <div>Max</div><div id="voltMax">—</div>
+          <div>Samples</div><div id="sampleCount">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <canvas id="chart" width="900" height="240" aria-label="Power Chart"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="row spread">
+        <div class="muted">Rohdaten (letzte Antwort)</div>
+        <button id="btnCopy" class="mini">Kopieren</button>
+      </div>
+      <pre id="jsonOut" class="code">—</pre>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const ipEl = $("ip"), intEl = $("interval"), btnStart = $("btnStart"), btnStop = $("btnStop");
+    const statusEl = $("status"), endpointPreview = $("endpointPreview");
+    const powerVal = $("powerVal"), voltVal = $("voltVal");
+    const powerMin = $("powerMin"), powerMax = $("powerMax"), voltMin = $("voltMin"), voltMax = $("voltMax");
+    const lastUpdate = $("lastUpdate"), sampleCount = $("sampleCount");
+    const jsonOut = $("jsonOut"), btnCopy = $("btnCopy");
+    const canvas = $("chart"), ctx = canvas.getContext("2d");
+
+    // Restore settings
+    ipEl.value = localStorage.getItem("esp_ip") || "";
+    intEl.value = localStorage.getItem("esp_interval") || 500;
+
+    let timer = null, data = [];
+    let minPower = +Infinity, maxPower = -Infinity, minVolt = +Infinity, maxVolt = -Infinity;
+
+    function setStatus(kind, text){
+      statusEl.querySelector(".dot").className = "dot " + (kind==="ok"?"ok": kind==="bad"?"bad":"idle");
+      statusEl.querySelector("span.muted").textContent = text;
+    }
+    function endpoint(ip){
+      return ip ? `http://${ip}/api/power` : "—";
+    }
+    function fmt(n, dec=2){
+      if (n === undefined || n === null || Number.isNaN(n)) return "—";
+      return Number(n).toFixed(dec);
+    }
+    function updateHeader(){
+      endpointPreview.textContent = endpoint(ipEl.value.trim());
+    }
+
+    function drawChart(){
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0,0,W,H);
+
+      // Grid
+      ctx.globalAlpha = .5;
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#1f2a3a";
+      for(let x=0; x<=W; x+=90){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+      for(let y=0; y<=H; y+=48){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+      ctx.globalAlpha = 1;
+
+      if (data.length < 2) return;
+
+      // Determine scales for power (left axis)
+      const maxPoints = 240; // ~2min @ 500ms
+      const view = data.slice(-maxPoints);
+      const pVals = view.map(d=>d.power);
+      const vVals = view.map(d=>d.voltage);
+      const pMin = Math.min(...pVals), pMax = Math.max(...pVals);
+      const vMin = Math.min(...vVals), vMax = Math.max(...vVals);
+      const pad = 8;
+
+      function yScale(val, min, max){
+        if (max === min) return H/2;
+        return H - pad - ( (val - min) / (max - min) ) * (H - 2*pad);
+      }
+
+      // Power line
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#6ee7b7";
+      ctx.beginPath();
+      view.forEach((d,i)=>{
+        const x = (i/(view.length-1))*W;
+        const y = yScale(d.power, pMin, pMax);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      // Voltage line (secondary)
+      ctx.strokeStyle = "#60a5fa";
+      ctx.beginPath();
+      view.forEach((d,i)=>{
+        const x = (i/(view.length-1))*W;
+        const y = yScale(d.voltage, vMin, vMax);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      // Legends
+      ctx.fillStyle = "#8a93a6";
+      ctx.font = "12px ui-monospace, Consolas, monospace";
+      ctx.fillText(`Power (min ${fmt(pMin)} W / max ${fmt(pMax)} W)`, 10, 16);
+      ctx.fillText(`Voltage (min ${fmt(vMin)} V / max ${fmt(vMax)} V)`, 10, 32);
+    }
+
+    function pushSample(sample){
+      data.push(sample);
+      if (data.length > 1000) data.shift();
+      minPower = Math.min(minPower, sample.power);
+      maxPower = Math.max(maxPower, sample.power);
+      minVolt  = Math.min(minVolt,  sample.voltage);
+      maxVolt  = Math.max(maxVolt,  sample.voltage);
+      // UI
+      powerVal.textContent = fmt(sample.power, 2);
+      voltVal.textContent  = fmt(sample.voltage, 3);
+      powerMin.textContent = fmt(minPower, 2);
+      powerMax.textContent = fmt(maxPower, 2);
+      voltMin.textContent  = fmt(minVolt, 3);
+      voltMax.textContent  = fmt(maxVolt, 3);
+      sampleCount.textContent = String(data.length);
+      lastUpdate.textContent = new Date(sample.t).toLocaleTimeString();
+      drawChart();
+    }
+
+    async function poll(){
+      const ip = ipEl.value.trim();
+      if(!ip){ setStatus("idle","IP fehlt"); stop(); return; }
+      try{
+        const url = endpoint(ip);
+        const res = await fetch(url, { cache: "no-store" });
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        const j = await res.json(); // expects { power, voltage }
+        jsonOut.textContent = JSON.stringify(j, null, 2);
+        if (typeof j.power === "number" && typeof j.voltage === "number"){
+          setStatus("ok","Verbunden");
+          pushSample({ power: j.power, voltage: j.voltage, t: Date.now() });
+        } else {
+          setStatus("bad","Ungültiges JSON");
+        }
+      }catch(err){
+        setStatus("bad","Fehler: "+(err?.message||err));
+      }
+    }
+
+    function start(){
+      const ip = ipEl.value.trim();
+      const interval = Math.max(100, Number(intEl.value)||500);
+      localStorage.setItem("esp_ip", ip);
+      localStorage.setItem("esp_interval", String(interval));
+      updateHeader();
+      if(timer) clearInterval(timer);
+      // Sofort ein erstes Polling
+      poll();
+      timer = setInterval(poll, interval);
+      btnStart.disabled = true; btnStop.disabled = false;
+    }
+    function stop(){
+      if(timer){ clearInterval(timer); timer = null; }
+      btnStart.disabled = false; btnStop.disabled = true;
+      setStatus("idle","Gestoppt");
+    }
+
+    btnStart.addEventListener("click", start);
+    btnStop.addEventListener("click", stop);
+    ipEl.addEventListener("input", updateHeader);
+    intEl.addEventListener("change", ()=>{ if(timer) { start(); } });
+    btnCopy.addEventListener("click", ()=>{
+      navigator.clipboard.writeText(jsonOut.textContent||"").then(()=>{ setStatus("ok","JSON kopiert"); })
+        .catch(()=> setStatus("bad","Kopieren fehlgeschlagen"));
+    });
+
+    // Initial
+    updateHeader();
+    drawChart();
+
+    // Resize handling for crisp canvas
+    const resize = ()=>{
+      const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+      canvas.width  = Math.floor(canvas.clientWidth  * dpr);
+      canvas.height = Math.floor(canvas.clientHeight * dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      drawChart();
+    };
+    window.addEventListener("resize", resize);
+    resize();
+  </script>
+</body>
+</html>
