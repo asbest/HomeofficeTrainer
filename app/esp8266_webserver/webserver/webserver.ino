@@ -25,6 +25,7 @@ void handleApi() {
   json += "\"voltage\":" + String(voltage, 3);
   json += "}";
 
+  server.sendHeader("Access-Control-Allow-Origin", "*");
   server.send(200, "application/json", json);
 }
 
