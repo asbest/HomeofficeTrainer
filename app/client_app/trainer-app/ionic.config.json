@@ -1,0 +1,7 @@
+{
+  "name": "Homeoffice Trainer",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
