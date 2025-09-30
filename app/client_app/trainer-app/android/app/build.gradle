@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.traummedia.homeofficetrainer"
+    namespace "com.davidtraum.homeofficetrainer"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.homeoffice.trainer"
+        applicationId "com.davidtraum.homeofficetrainer"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 4

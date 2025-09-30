@@ -6,12 +6,14 @@
       </ion-toolbar>
     </ion-header>
     <ion-content :fullscreen="true" class="ion-padding">
-      <section class="hero" :class="{ active: activeLatest }">
+      <div class="desktop-split">
+        <section class="hero" :class="{ active: activeLatest }">
         <div class="power-display" v-if="activeLatest">
           <div class="power-value">
             <span class="num">{{ fmt(activePower,2) }}</span>
             <span class="unit">Watt</span>
-            <div v-if="displayEq" class="best-eq">
+            <div v-if="displayEq" class="best-eq" :class="{ pinned: isPinned }">
+              <div class="fill" v-if="isPinned" :style="{ width: fillWidth }"></div>
               <span class="icon">{{ displayEq.profile.icon }}</span>
               <span class="text" v-if="displayEq.factor >= 1">≈ {{ displayEq.factor.toFixed(1) }}× {{ displayEq.profile.label }}</span>
               <span class="text" v-else>≈ {{ (displayEq.factor*100).toFixed(0) }}% {{ displayEq.profile.label }}</span>
@@ -26,80 +28,81 @@
               <span class="label">Samples</span>
               <span class="val">{{ activeSampleCount }}</span>
             </div>
-            <div class="mini-block" v-if="activeMinPower!=null">
-              <span class="label">Min</span>
-              <span class="val">{{ fmt(activeMinPower,1) }}</span>
-            </div>
-            <div class="mini-block" v-if="activeMaxPower!=null">
-              <span class="label">Max</span>
-              <span class="val">{{ fmt(activeMaxPower,1) }}</span>
-            </div>
-          </div>
-        </div>
-        <div v-else class="hero-placeholder">Noch keine Messung<br/>IP eingeben & Start.</div>
-        <div class="hero-status">
-          <div class="status-pill" :class="statusClass">
-            <span class="dot" :class="statusDot"></span>
-            <span class="text">{{ statusText }}</span>
-          </div>
-        </div>
-      </section>
-
-      <ion-accordion-group expand="inset" class="settings-acc">
-        <ion-accordion value="settings">
-          <ion-item slot="header" color="dark">
-            <ion-label>Einstellungen & Verbindung</ion-label>
-          </ion-item>
-          <div class="accordion-inner" slot="content">
-            <div class="controls">
-              <div class="field">
-                <label>ESP IP-Adresse</label>
-                <ion-input v-model="ip" placeholder="192.168.x.x" @keyup.enter="startMonitoring" />
+              <div class="mini-block" v-if="activeMinPower!=null">
+                <span class="label">Min</span>
+                <span class="val">{{ fmt(activeMinPower,1) }}</span>
               </div>
-              <!-- Polling + Mode selector removed -->
-              <ion-button size="default" :disabled="!validIp || activeRunning" @click="startMonitoring">Start</ion-button>
-              <ion-button size="default" color="medium" :disabled="!activeRunning" @click="stopMonitoring">Stop</ion-button>
+              <div class="mini-block" v-if="activeMaxPower=null">
+                <span class="label">Max</span>
+                <span class="val">{{ fmt(activeMaxPower,1) }}</span>
+              </div>
             </div>
-            <div class="endpoint muted small-line">{{ endpointLabel }}: <span>{{ endpointPreview }}</span></div>
-            <ion-card class="raw-card" v-if="activeRawJson">
-              <ion-card-header>
-                <ion-card-title>Rohdaten</ion-card-title>
-                <ion-card-subtitle>
-                  <ion-button size="small" fill="clear" @click="copyJson">Kopieren</ion-button>
-                </ion-card-subtitle>
-              </ion-card-header>
-              <ion-card-content>
-                <pre class="json">{{ prettyRaw }}</pre>
-              </ion-card-content>
-            </ion-card>
           </div>
-        </ion-accordion>
-      </ion-accordion-group>
-
-      <div v-if="activeError" class="error-msg">Fehler: {{ activeError }}</div>
-
-      <section v-if="activeLatest" class="equivalents-section">
-        <h2 class="section-title">Womit vergleichbar?</h2>
-        <div class="eq-grid">
-          <div
-            v-for="eq in eqList"
-            :key="eq.profile.id"
-            class="eq-item"
-            :class="{ active: selectedEqId === eq.profile.id }"
-            @click="selectEq(eq.profile.id)"
-          >
-            <div class="icon">{{ eq.profile.icon }}</div>
-            <div class="label">{{ eq.profile.label }}</div>
-            <div class="factor" v-if="eq.factor >= 1">≈ {{ eq.factor.toFixed(1) }}x</div>
-            <div class="factor" v-else>≈ {{ (eq.factor*100).toFixed(0) }}%</div>
+          <div v-else class="hero-placeholder">Noch keine Messung<br/>IP eingeben & Start.</div>
+          <div class="hero-status">
+            <div class="status-pill" :class="statusClass">
+              <span class="dot" :class="statusDot"></span>
+              <span class="text">{{ statusText }}</span>
+            </div>
           </div>
+        </section>
+
+        <div class="right-col">
+          <section v-if="activeConnected" class="equivalents-section">
+            <h2 class="section-title">Womit vergleichbar?</h2>
+            <div class="eq-grid">
+              <div
+                v-for="eq in eqList"
+                :key="eq.profile.id"
+                class="eq-item"
+                :class="{ active: selectedEqId === eq.profile.id }"
+                @click="selectEq(eq.profile.id)"
+              >
+                <div class="icon">{{ eq.profile.icon }}</div>
+                <div class="label">{{ eq.profile.label }}</div>
+                <div v-if="eq.factor!=null" class="factor" :class="{ muted: !activeLatest }">
+                  <template v-if="eq.factor >= 1">≈ {{ eq.factor.toFixed(1) }}x</template>
+                  <template v-else>≈ {{ (eq.factor*100).toFixed(0) }}%</template>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <ion-accordion-group expand="inset" class="settings-acc">
+            <ion-accordion value="settings">
+              <ion-item slot="header" color="dark">
+                <ion-label>Einstellungen & Verbindung</ion-label>
+              </ion-item>
+              <div class="accordion-inner" slot="content">
+                <div class="controls">
+                  <div class="field">
+                    <label>ESP IP-Adresse</label>
+                    <ion-input v-model="ip" placeholder="192.168.x.x" @keyup.enter="startMonitoring" />
+                  </div>
+                  <ion-button size="default" :disabled="!validIp || activeRunning" @click="startMonitoring">Start</ion-button>
+                  <ion-button size="default" color="medium" :disabled="!activeRunning" @click="stopMonitoring">Stop</ion-button>
+                </div>
+                <div class="endpoint muted small-line">{{ endpointLabel }}: <span>{{ endpointPreview }}</span></div>
+                <ion-card class="raw-card" v-if="activeRawJson">
+                  <ion-card-header>
+                    <ion-card-title>Rohdaten</ion-card-title>
+                    <ion-card-subtitle>
+                      <ion-button size="small" fill="clear" @click="copyJson">Kopieren</ion-button>
+                    </ion-card-subtitle>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <pre class="json">{{ prettyRaw }}</pre>
+                  </ion-card-content>
+                </ion-card>
+              </div>
+            </ion-accordion>
+          </ion-accordion-group>
+
+          <div v-if="activeError" class="error-msg">Fehler: {{ activeError }}</div>
         </div>
-      </section>
-
-      <div v-else class="placeholder subtle">Noch keine Daten.</div>
+      </div> <!-- end desktop-split -->
 
       <PowerChart v-if="activeHistory.length > 1" :samples="chartSamples" class="chart-section" />
-
       <ion-progress-bar v-if="activeLoading" type="indeterminate" />
     </ion-content>
   </ion-page>
@@ -137,7 +140,12 @@ function stopMonitoring(){ sock.disconnect(); statusText.value='Gestoppt'; }
 
 const validIp = computed(() => ip.value.trim().length > 0);
 const endpointLabel = computed(()=> 'WebSocket');
-const endpointPreview = computed(() => validIp.value ? `ws://${ip.value.trim()}:81` : '—');
+const endpointPreview = computed(() => {
+  if (!validIp.value) return '—';
+  if (sock.lastUrl?.value) return sock.lastUrl.value;
+  const secure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+  return `${secure ? 'wss' : 'ws'}://${ip.value.trim()}:81`;
+});
 
 // Unified reactive projections
 const activeLatest = computed(()=> sock.latest.value);
@@ -154,6 +162,7 @@ const activeError = computed(()=> sock.error.value);
 const activeHistory = computed(()=> sock.history.value);
 const activeRunning = computed(()=> sock.isConnected.value || sock.isConnecting.value);
 const activeLoading = computed(()=> (!sock.isConnected.value && sock.isConnecting.value));
+const activeConnected = computed(()=> sock.isConnected.value);
 
 // Status pill
 const statusText = ref('Bereit');
@@ -168,7 +177,14 @@ function fmt(n: any, dec = 2){ if(n==null || Number.isNaN(Number(n))) return '�
 const prettyRaw = computed(() => activeRawJson.value ? JSON.stringify(activeRawJson.value, null, 2) : '—');
 const chartSamples = computed(() => activeHistory.value.map((s: any) => ({ power: s.power, voltage: s.voltage, timestamp: s.timestamp })));
 
-const eqListFull = computed(()=> equivalents(activePower.value||0));
+import { powerProfiles } from '@/data/powerProfiles';
+const eqListFull = computed(()=> {
+  const p = activePower.value;
+  if (!p || p <= 0) {
+    return powerProfiles.map(pr => ({ profile: pr, factor: null as any }));
+  }
+  return equivalents(p);
+});
 const autoEq = computed(()=> {
   const list = eqListFull.value;
   if (!list.length) return null;
@@ -181,7 +197,14 @@ const autoEq = computed(()=> {
   return closest;
 });
 const selectedEqId = ref<string | null>(null);
-function selectEq(id: string) { selectedEqId.value = id; }
+function selectEq(id: string) {
+  if (selectedEqId.value === id) {
+    // deselect -> return to automatic mode
+    selectedEqId.value = null;
+  } else {
+    selectedEqId.value = id;
+  }
+}
 const displayEq = computed(()=> {
   if (selectedEqId.value) {
     return eqListFull.value.find(e => e.profile.id === selectedEqId.value) || null;
@@ -189,18 +212,29 @@ const displayEq = computed(()=> {
   return autoEq.value;
 });
 const eqList = computed(()=> eqListFull.value.slice(0,12));
+const isPinned = computed(()=> !!selectedEqId.value && displayEq.value && selectedEqId.value === displayEq.value.profile.id);
+// fill percent: clamp factor (<=1) to percent, if over 1, show 100%
+const fillWidth = computed(()=> {
+  if (!displayEq.value) return '0%';
+  const f = displayEq.value.factor;
+  if (f >= 1) return '100%';
+  return `${Math.min(100, Math.max(0, f*100)).toFixed(1)}%`;
+});
 
 async function copyJson(){ if (!activeRawJson.value) return; try { await navigator.clipboard.writeText(JSON.stringify(activeRawJson.value, null, 2)); statusText.value = 'JSON kopiert'; } catch { statusText.value = 'Copy Fehler'; } }
 </script>
 
 <style scoped>
-.hero { position:relative; margin:-16px -16px 24px; padding:48px 24px 56px; text-align:center; background: radial-gradient(circle at 40% 35%, #3b82f6 0%, #1e3a8a 70%); color:#fff; transition:0.4s background; }
+.hero { position:relative; margin:-16px -16px 24px; padding:48px 24px 56px; text-align:center; background: radial-gradient(circle at 40% 35%, #3b82f6 0%, #1e3a8a 70%); color:#fff; transition:0.4s background; display:flex; flex-direction:column; justify-content:center; }
 .hero.active { background: radial-gradient(circle at 60% 40%, #06b6d4 0%, #0f172a 70%); }
 .hero-placeholder { font-size:0.95rem; opacity:0.85; line-height:1.4; }
 .power-display { display:flex; flex-direction:column; align-items:center; gap:28px; }
 .power-value { font-size: clamp(3.2rem, 9vw, 5.5rem); font-weight:800; letter-spacing:-2px; display:flex; flex-direction:column; line-height:0.9; }
 .power-value .unit { font-size: clamp(0.9rem,2vw,1.3rem); font-weight:500; letter-spacing:0; margin-top:12px; opacity:0.9; }
-.power-value .best-eq { margin-top:14px; display:flex; align-items:center; gap:10px; justify-content:center; font-size:0.9rem; font-weight:600; background:rgba(255,255,255,0.12); padding:8px 14px 9px; border-radius:999px; backdrop-filter:blur(6px); }
+.power-value .best-eq { margin-top:14px; display:flex; align-items:center; gap:10px; justify-content:center; font-size:0.9rem; font-weight:600; background:rgba(255,255,255,0.12); padding:8px 14px 9px; border-radius:999px; backdrop-filter:blur(6px); position:relative; overflow:hidden; }
+.power-value .best-eq.pinned { background:rgba(34,197,94,0.18); }
+.power-value .best-eq .fill { position:absolute; left:0; top:0; bottom:0; background:linear-gradient(90deg,#16a34a,#22c55e); opacity:0.55; pointer-events:none; transition:width .6s cubic-bezier(.4,.0,.2,1); }
+.power-value .best-eq.pinned .text, .power-value .best-eq.pinned .icon { position:relative; z-index:1; }
 .power-value .best-eq .icon { font-size:1.4rem; line-height:1; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
 .power-value .best-eq .text { white-space:nowrap; letter-spacing:.5px; }
 .sub-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(90px,1fr)); gap:12px; width:100%; max-width:640px; }
@@ -209,7 +243,7 @@ async function copyJson(){ if (!activeRawJson.value) return; try { await navigat
 .mini-block .val { font-size:1.05rem; font-weight:600; margin-top:4px; font-variant-numeric: tabular-nums; }
 .hero-status { position:absolute; top:12px; right:16px; }
 
-.settings-acc { margin-top:-8px; margin-bottom:8px; }
+.settings-acc { margin-top:16px; margin-bottom:8px; }
 .accordion-inner { padding:16px 12px 8px; }
 .small-line { font-size:11px; margin-top:6px; }
 
@@ -244,9 +278,19 @@ async function copyJson(){ if (!activeRawJson.value) return; try { await navigat
 /* Simple toolbar (inherits Ionic dark color) */
 
 @media (min-width: 900px) {
-  .hero { margin:-16px -32px 32px; border-bottom-left-radius:32px; border-bottom-right-radius:32px; }
-  .eq-grid { gap:18px; }
+  .desktop-split { display:grid; grid-template-columns: minmax(420px, 54%) 1fr; gap: 32px; align-items: stretch; }
+  .hero { margin:-16px 0 32px; border-radius:32px; height:100%; min-height:100%; padding-bottom:48px; }
+  .equivalents-section { margin-top:0; padding-top:8px; }
+  .eq-grid { gap:16px; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); }
   .eq-item { min-height:150px; }
-  .power-value { font-size: clamp(4rem,7vw,6rem); }
+  .power-value { font-size: clamp(4rem,6vw,6rem); }
+  .right-col { margin-top:-8px; }
+  .right-col .settings-acc { margin-top:20px; }
+  .right-col .placeholder.subtle { margin-top:12px; }
+}
+
+@media (min-width: 1300px) {
+  .desktop-split { grid-template-columns: minmax(520px, 50%) 1fr; gap:48px; }
+  .eq-grid { gap:20px; }
 }
 </style>

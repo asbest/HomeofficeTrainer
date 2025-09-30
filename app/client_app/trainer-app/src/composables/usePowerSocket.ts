@@ -33,6 +33,8 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
   let manualClose = false;
   let reconnectTimer: number | null = null;
   let simTimer: number | null = null;
+  const lastUrl = ref<string | null>(null);
+  let triedSecureDowngraded = false;
 
   function connect() {
     const ip = ipRef().trim();
@@ -46,13 +48,15 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
       startSimulation();
       return;
     }
-    const url = buildWsUrl(ip);
+    const url = buildWsUrl(ip, triedSecureDowngraded);
     try {
       ws = new WebSocket(url);
+      lastUrl.value = url;
       ws.onopen = () => {
         isConnecting.value = false;
         isConnected.value = true;
         attempts.value = 0;
+        triedSecureDowngraded = false; // reset after success
       };
       ws.onmessage = (ev) => {
         try {
@@ -77,6 +81,14 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
         if (!manualClose) scheduleReconnect();
       };
       ws.onerror = (ev) => {
+        // If secure attempt failed (-107 handshake) and we haven't downgraded yet, try plain ws immediately
+        if (!manualClose && !triedSecureDowngraded && /^wss:/i.test(url)) {
+          triedSecureDowngraded = true;
+          if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) ws.close();
+          // immediate retry with downgrade
+          setTimeout(() => connect(), 50);
+          return;
+        }
         error.value = 'WebSocket Fehler';
         ws?.close();
       };
@@ -141,13 +153,24 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
 
   onBeforeUnmount(() => disconnect());
 
-  return { connect, disconnect, isConnected, isConnecting, error, latest, history, power, voltage, current, lastUpdated, sampleCount, minPower, maxPower, minVoltage, maxVoltage };
+  return { connect, disconnect, isConnected, isConnecting, error, latest, history, power, voltage, current, lastUpdated, sampleCount, minPower, maxPower, minVoltage, maxVoltage, lastUrl };
 }
 
-function buildWsUrl(ip: string) {
+function buildWsUrl(ip: string, forcedPlain: boolean) {
   if (/^wss?:\/\//i.test(ip)) return ip.replace(/\/$/, '');
-  if (/^https?:\/\//i.test(ip)) {
-    return ip.replace(/^http/i, 'ws').replace(/\/$/, '').replace(/:80$/, '') + ':81';
+  const cleaned = ip.replace(/\/$/, '');
+  const hasPort = /:[0-9]+$/.test(cleaned);
+  const hostOnly = cleaned.replace(/^https?:\/\//i, '').split('/')[0];
+  const isLan = /^(localhost|127\.0\.0\.1|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/i.test(hostOnly) || /^[a-z0-9\-]+\.local$/i.test(hostOnly) || /homeofficetrainer/i.test(hostOnly);
+  // If full http/https given, transform accordingly but avoid secure for LAN w/o cert
+  if (/^https?:\/\//i.test(cleaned)) {
+    const secureReq = /^https:/i.test(cleaned) && !isLan && !forcedPlain;
+    let base = cleaned.replace(/^http/i, 'ws').replace(/:80$/, '');
+    if (!hasPort) base += ':81';
+    if (!secureReq) base = base.replace(/^wss:/i,'ws:');
+    return base;
   }
-  return 'ws://' + ip.replace(/\/$/, '') + ':81';
+  const secureContext = (typeof window !== 'undefined') && window.location && window.location.protocol === 'https:';
+  const useSecure = secureContext && !isLan && !forcedPlain;
+  return (useSecure ? 'wss://' : 'ws://') + cleaned + (hasPort ? '' : ':81');
 }
