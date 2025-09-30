@@ -1,5 +1,6 @@
 #include <ESP8266WiFi.h>
-#include <WebSocketsServer.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 #include <Wire.h>
 
 // Minimal INA226 helper (2 mΩ shunt)
@@ -46,16 +47,18 @@ namespace INA226 {
     delay(2);
     return true;
   }
+  static uint16_t lastVraw = 0; // expose for debug
   bool readMeasurements(float &busVoltage, float &current, float &power) {
     uint16_t vraw, craw, praw;
     if (!readRegister(REG_BUS, vraw)) return false;
     if (!readRegister(REG_CURRENT, craw)) return false;
     if (!readRegister(REG_POWER, praw)) return false;
     // Convert
-    busVoltage = (vraw >> 3) * 0.004; // each bit = 1.25mV, but datasheet: Bus voltage register 13-bit (bits 15..3); LSB=1.25mV -> (vraw>>3)*0.00125; using 0.004? correct: 0.00125
-    busVoltage = (vraw >> 3) * 0.00125; // correct conversion
+    // INA226: Bus Voltage LSB = 1.25 mV directly (no >>3 needed, unlike INA219 example code)
+    busVoltage = vraw * 0.00125f;
     current = (int16_t)craw * 0.0005; // 0.5 mA per bit
     power = praw * 0.0125; // 12.5 mW per bit
+    lastVraw = vraw;
     return true;
   }
 }
@@ -69,7 +72,8 @@ namespace INA226 {
 const char* ssid     = "Fritzi";
 const char* password = "65770551205628807473";
 
-WebSocketsServer wsServer(81); // WebSocket on port 81
+AsyncWebServer server(80);            // HTTP server (could be unused, but required host for WS)
+AsyncWebSocket ws("/ws");            // WebSocket endpoint at /ws
 
 // Legacy analog smoothing removed (INA226 provides filtered readings)
 const int analogPin = A0; // leftover (not used with INA226 now)
@@ -79,6 +83,27 @@ bool inaReady = false;
 unsigned long lastRssiLog = 0;
 unsigned long lastWsBroadcast = 0; // heartbeat broadcast timer
 const unsigned long WS_BROADCAST_INTERVAL_MS = 500; // 0.5s push (doubled sampling rate)
+// Diagnostics counters
+volatile unsigned long statConnects = 0;
+volatile unsigned long statDisconnects = 0;
+volatile unsigned long statErrors = 0;
+volatile unsigned long statBroadcasts = 0;
+volatile unsigned long statInaFail = 0;
+volatile unsigned long statPongs = 0;
+unsigned long lastStatPrint = 0;
+unsigned long statWindowStart = 0;
+unsigned long statBroadcastsWindow = 0;
+float lastPower=0, lastVoltage=0, lastCurrent=0;
+unsigned long slowInaCount = 0;
+const unsigned long INA_SLOW_THRESHOLD_US = 3000; // >3ms considered slow read
+// LED control: onboard LED (active LOW on most ESP8266 boards)
+void updateLed() {
+  if (ws.count() > 0) {
+    digitalWrite(LED_BUILTIN, LOW); // ON
+  } else {
+    digitalWrite(LED_BUILTIN, HIGH); // OFF
+  }
+}
 
 String buildJson(float power, float voltage, float current) {
   String json = "{";
@@ -91,65 +116,67 @@ String buildJson(float power, float voltage, float current) {
 
 void broadcastSample() {
   float v=0, c=0, p=0;
+  unsigned long t0 = micros();
   if (inaReady) {
     if (INA226::readMeasurements(v, c, p)) {
-      // p already watts from conversion
+      // success
     } else {
+      statInaFail++;
       Serial.println("INA226 read failed");
     }
   }
+  #ifdef INA226_DEBUG_VOLT
+    extern uint16_t INA226::lastVraw; // using the static inside namespace
+    Serial.printf("[VDBG] raw=0x%04X -> %.3fV\n", INA226::lastVraw, v);
+  #endif
+  unsigned long dur = micros() - t0;
+  if (dur > INA_SLOW_THRESHOLD_US) {
+    slowInaCount++;
+    Serial.printf("[WARN] Slow INA226 read %lu us\n", dur);
+  }
+  lastPower = p; lastVoltage = v; lastCurrent = c;
+  statBroadcasts++;
+  statBroadcastsWindow++;
   String json = buildJson(p, v, c);
-  wsServer.broadcastTXT(json);
+  ws.textAll(json);
 }
 
-void onWsEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+void onWsEvent(AsyncWebSocket       * server,
+               AsyncWebSocketClient * client,
+               AwsEventType           type,
+               void                  * arg,
+               uint8_t               * data,
+               size_t                  len) {
   switch (type) {
-    case WStype_DISCONNECTED: {
-      Serial.print("[WS] Client "); Serial.print(num); Serial.println(" disconnected");
-      break;
-    }
-    case WStype_CONNECTED: {
-      IPAddress ip = wsServer.remoteIP(num);
-      Serial.print("[WS] Client "); Serial.print(num); Serial.print(" connected from "); Serial.println(ip);
-      // Immediate sample
+    case WS_EVT_CONNECT: {
+      statConnects++;
+      Serial.printf("[WS %u] CONNECT %s\n", client->id(), client->remoteIP().toString().c_str());
+      client->text("{\"hello\":1}");
       broadcastSample();
-      break;
-    }
-    case WStype_TEXT: {
-      Serial.print("[WS] Text from "); Serial.print(num); Serial.print(": ");
-      for (size_t i=0;i<length;i++) Serial.print((char)payload[i]);
-      Serial.println();
-      if (length && (char)payload[0] == 'p') {
-        wsServer.sendTXT(num, "pong");
-      } else if (length && (char)payload[0] == '1') {
-        // Force immediate broadcast when client sends '1'
-        broadcastSample();
+      updateLed();
+      break; }
+    case WS_EVT_DISCONNECT: {
+      statDisconnects++;
+      Serial.printf("[WS %u] DISCONNECT\n", client->id());
+      updateLed();
+      break; }
+    case WS_EVT_DATA: {
+      // simple text commands
+      AwsFrameInfo * info = (AwsFrameInfo*)arg;
+      if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
+        if (len > 0) {
+          if (data[0] == '1') broadcastSample();
+          else if (data[0] == 'p') client->text("pong");
+        }
       }
-      break;
-    }
-    case WStype_BIN: {
-      Serial.print("[WS] Binary length="); Serial.println(length);
-      break;
-    }
-    case WStype_PING: {
-      Serial.println("[WS] PING");
-      break;
-    }
-    case WStype_PONG: {
-      Serial.println("[WS] PONG");
-      break;
-    }
-    case WStype_ERROR: {
-      Serial.println("[WS] ERROR event");
-      break;
-    }
-    case WStype_FRAGMENT_TEXT_START:
-    case WStype_FRAGMENT_BIN_START:
-    case WStype_FRAGMENT:
-    case WStype_FRAGMENT_FIN: {
-      Serial.println("[WS] Fragmented frame event");
-      break;
-    }
+      break; }
+    case WS_EVT_PONG: {
+      statPongs++;
+      break; }
+    case WS_EVT_ERROR: {
+      statErrors++;
+      Serial.printf("[WS %u] ERROR\n", client->id());
+      break; }
   }
 }
 
@@ -159,17 +186,35 @@ void setup() {
   Serial.begin(921600);
   delay(100);
 
-  WiFi.mode(WIFI_STA);       // nur Client
+  // Dual Mode: eigener offener AP + (optional) Verbindung ins Heim-WLAN
+  WiFi.mode(WIFI_AP_STA);
   WiFi.hostname("homeofficetrainer");
-  WiFi.setSleep(false);      // Sleep aus -> stabilere Verbindungen beim Polling
-  WiFi.begin(ssid, password);
+  WiFi.setSleep(false);
 
-  Serial.print("Verbinde mit WLAN ");
+  // Start Open AP (kein Passwort) -> SSID: homeofficetrainer  IP: 192.168.4.1
+  // Passphrase secured AP (WPA2). Passwort: hotrainer
+  bool apOk = WiFi.softAP("homeofficetrainer", "hotrainer");
+  if (apOk) {
+    Serial.println("AP gestartet: SSID=homeofficetrainer PASS=hotrainer IP=" + WiFi.softAPIP().toString());
+  } else {
+    Serial.println("AP Start fehlgeschlagen");
+  }
+
+  // Parallel versuchen ins bekannte WLAN zu verbinden (nicht blockierend >8s)
+  Serial.print("Verbinde (optional) mit WLAN ");
   Serial.println(ssid);
-  while (WiFi.status() != WL_CONNECTED) { delay(250); Serial.print('.'); }
-  Serial.println("\nWLAN verbunden, IP: " + WiFi.localIP().toString());
+  WiFi.begin(ssid, password);
+  unsigned long startAttempt = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - startAttempt < 8000) {
+    delay(250); Serial.print('.');
+  }
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWLAN (STA) verbunden, IP: " + WiFi.localIP().toString());
+  } else {
+    Serial.println("\nSTA Timeout – weiter nur über AP erreichbar (ws://192.168.4.1/ws)");
+  }
 
-  Serial.println("Nur WebSocket Modus aktiv (kein HTTP)");
+  Serial.println("WebSocket Modus aktiv (/ws)");
 
   Wire.begin();
   inaReady = INA226::begin();
@@ -179,12 +224,15 @@ void setup() {
     Serial.println("INA226 Fehler - Messungen werden 0 sein");
   }
 
-  wsServer.begin();
-  wsServer.onEvent(onWsEvent);
+  ws.onEvent(onWsEvent);
+  server.addHandler(&ws);
+  server.begin();
+  statWindowStart = millis();
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH); // ensure off initially
 }
 
 void loop() {
-  wsServer.loop();
   // Periodic RSSI log every 15s
   unsigned long now = millis();
   if (now - lastRssiLog > 15000) {
@@ -194,9 +242,17 @@ void loop() {
   // Heartbeat broadcast so client doesn't wait forever for first push
   if (now - lastWsBroadcast > WS_BROADCAST_INTERVAL_MS) {
     lastWsBroadcast = now;
-    if (wsServer.connectedClients() > 0) {
-      broadcastSample();
-    }
+    if (ws.count() > 0) broadcastSample();
   }
-  delay(2); // Keep latency low
+  // Periodic stats every 10s
+  if (now - lastStatPrint > 10000) {
+    unsigned long windowMs = now - statWindowStart;
+    float bps = windowMs ? (1000.0f * statBroadcastsWindow / windowMs) : 0.0f;
+    Serial.printf("[STAT] up=%lus con=%lu disc=%lu err=%lu bcast=%lu (%.2f/s) inaFail=%lu slowIna=%lu heap=%u lastP=%.3fV=%.3f I=%.3f pong=%lu clients=%u\n",
+      now/1000UL, statConnects, statDisconnects, statErrors, statBroadcasts, bps, statInaFail, slowInaCount, ESP.getFreeHeap(), lastPower, lastVoltage, lastCurrent, statPongs, ws.count());
+    lastStatPrint = now;
+    statBroadcastsWindow = 0;
+    statWindowStart = now;
+  }
+  // no blocking delay needed; yield implicitly
 }

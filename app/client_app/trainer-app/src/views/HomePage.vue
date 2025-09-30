@@ -10,8 +10,10 @@
         <section class="hero" :class="{ active: activeLatest }">
         <div class="power-display" v-if="activeLatest">
           <div class="power-value">
-            <span class="num">{{ fmt(activePower,2) }}</span>
-            <span class="unit">Watt</span>
+            <span class="num">{{ displayPotential? fmt(displayPotential,1) : fmt(activePower,2) }}</span>
+            <span class="unit" v-if="displayPotential">Watt Potenzial</span>
+            <span class="unit" v-else>Watt</span>
+            <div class="actual-line" v-if="displayPotential">Aktuell: {{ fmt(activePower,2) }} W<span v-if="rintSamples<3"> (lerne…)</span></div>
             <div v-if="displayEq" class="best-eq" :class="{ pinned: isPinned }">
               <div class="fill" v-if="isPinned" :style="{ width: fillWidth }"></div>
               <span class="icon">{{ displayEq.profile.icon }}</span>
@@ -32,13 +34,13 @@
                 <span class="label">Min</span>
                 <span class="val">{{ fmt(activeMinPower,1) }}</span>
               </div>
-              <div class="mini-block" v-if="activeMaxPower=null">
+              <div class="mini-block" v-if="activeMaxPower!=null">
                 <span class="label">Max</span>
                 <span class="val">{{ fmt(activeMaxPower,1) }}</span>
               </div>
             </div>
           </div>
-          <div v-else class="hero-placeholder">Noch keine Messung<br/>IP eingeben & Start.</div>
+          <div v-else class="hero-placeholder">Verbinden mit Trainer<br/>Verbinde dich zuerst mit dem WLAN <strong>homeofficetrainer</strong> und drücke dann <em>Connect</em>.</div>
           <div class="hero-status">
             <div class="status-pill" :class="statusClass">
               <span class="dot" :class="statusDot"></span>
@@ -74,15 +76,11 @@
                 <ion-label>Einstellungen & Verbindung</ion-label>
               </ion-item>
               <div class="accordion-inner" slot="content">
-                <div class="controls">
-                  <div class="field">
-                    <label>ESP IP-Adresse</label>
-                    <ion-input v-model="ip" placeholder="192.168.x.x" @keyup.enter="startMonitoring" />
-                  </div>
-                  <ion-button size="default" :disabled="!validIp || activeRunning" @click="startMonitoring">Start</ion-button>
+                <div class="controls single">
+                  <ion-button size="default" :disabled="activeRunning" @click="startMonitoring">Connect</ion-button>
                   <ion-button size="default" color="medium" :disabled="!activeRunning" @click="stopMonitoring">Stop</ion-button>
                 </div>
-                <div class="endpoint muted small-line">{{ endpointLabel }}: <span>{{ endpointPreview }}</span></div>
+                <div class="endpoint muted small-line">Endpoint: <span>{{ endpointPreview }}</span></div>
                 <ion-card class="raw-card" v-if="activeRawJson">
                   <ion-card-header>
                     <ion-card-title>Rohdaten</ion-card-title>
@@ -92,6 +90,23 @@
                   </ion-card-header>
                   <ion-card-content>
                     <pre class="json">{{ prettyRaw }}</pre>
+                  </ion-card-content>
+                </ion-card>
+                <ion-card class="raw-card diag-card" v-if="diagEvents.length">
+                  <ion-card-header>
+                    <ion-card-title>Diagnostik</ion-card-title>
+                    <ion-card-subtitle>
+                      <span class="diag-meta">Attempts: {{ sock.attempts.value }} | First msg Latenz: {{ sock.lastFirstMessageLatency.value ?? '—' }} ms | Ping RTT: {{ sock.lastPingRtt.value ? sock.lastPingRtt.value.toFixed(1)+' ms' : '—' }}</span>
+                    </ion-card-subtitle>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <div class="diag-log">
+                      <div v-for="e in diagEvents" :key="e.t+e.type" class="line">
+                        <span class="ts">{{ formatTs(e.t) }}</span>
+                        <span class="etype">{{ e.type }}</span>
+                        <span class="detail" v-if="e.detail">{{ summarizeDetail(e.detail) }}</span>
+                      </div>
+                    </div>
                   </ion-card-content>
                 </ion-card>
               </div>
@@ -110,46 +125,32 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonProgressBar, IonAccordionGroup, IonAccordion, IonItem, IonLabel } from '@ionic/vue';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonProgressBar, IonAccordionGroup, IonAccordion, IonItem, IonLabel } from '@ionic/vue';
 import { usePowerSocket } from '@/composables/usePowerSocket';
 import PowerChart from '@/components/PowerChart.vue';
 import { equivalents } from '@/data/powerProfiles';
 
-const ip = ref('homeofficetrainer');
-const STORAGE_KEY_IP = 'esp_ip';
-// Removed interval & mode storage keys
-
-// WebSocket only now
-// Pre-filled hostname for WebSocket only setup
-
-onMounted(() => {
-  const savedIp = localStorage.getItem(STORAGE_KEY_IP);
-  if (savedIp) ip.value = savedIp;
-});
-watch(ip, (v) => { if (v) localStorage.setItem(STORAGE_KEY_IP, v); else localStorage.removeItem(STORAGE_KEY_IP); });
+// Fixed AP host (open AP mode): 192.168.4.1
+const FIXED_HOST = '192.168.4.1';
 
 // Polling composable
 // WebSocket composable
-const sock = usePowerSocket(() => ip.value, {});
+const sock = usePowerSocket(() => FIXED_HOST, {});
 
 // Legacy placeholder to keep template minimal changes (not used)
 const intervalMsLocal = ref(0);
 
-function startMonitoring(){ if (!validIp.value) return; sock.connect(); statusText.value='Verbunden'; }
+function startMonitoring(){ sock.connect(); statusText.value='Verbinden…'; }
 function stopMonitoring(){ sock.disconnect(); statusText.value='Gestoppt'; }
-
-const validIp = computed(() => ip.value.trim().length > 0);
-const endpointLabel = computed(()=> 'WebSocket');
-const endpointPreview = computed(() => {
-  if (!validIp.value) return '—';
-  if (sock.lastUrl?.value) return sock.lastUrl.value;
-  const secure = typeof window !== 'undefined' && window.location.protocol === 'https:';
-  return `${secure ? 'wss' : 'ws'}://${ip.value.trim()}:81`;
-});
+const endpointPreview = computed(() => sock.lastUrl?.value || `ws://${FIXED_HOST}/ws`);
 
 // Unified reactive projections
 const activeLatest = computed(()=> sock.latest.value);
 const activePower = computed(()=> sock.power.value);
+// Potential power model values
+const potentialPower = computed(()=> sock.potentialPower?.value ?? null);
+const rintSamples = computed(()=> sock.rintSamples?.value ?? 0);
+const displayPotential = computed(()=> potentialPower.value && rintSamples.value >= 3 ? potentialPower.value : null);
 const activeVoltage = computed(()=> sock.voltage.value);
 const activeMinPower = computed(()=> sock.minPower.value);
 const activeMaxPower = computed(()=> sock.maxPower.value);
@@ -171,6 +172,15 @@ const statusDot = computed(()=> {
   return activeRunning.value ? 'ok' : 'idle';
 });
 const statusClass = computed(()=> ({ running: activeRunning.value }));
+
+// Auto status updates
+watch(() => sock.isConnected.value, (v) => {
+  if (v) statusText.value = 'Verbunden';
+});
+watch(() => sock.latest.value, (v) => {
+  if (v && statusText.value.startsWith('Verbinden')) statusText.value = 'Verbunden';
+});
+watch(activeError, (e) => { if (e) statusText.value = 'Fehler'; });
 
 // Formatting helpers
 function fmt(n: any, dec = 2){ if(n==null || Number.isNaN(Number(n))) return '—'; return Number(n).toFixed(dec); }
@@ -222,6 +232,21 @@ const fillWidth = computed(()=> {
 });
 
 async function copyJson(){ if (!activeRawJson.value) return; try { await navigator.clipboard.writeText(JSON.stringify(activeRawJson.value, null, 2)); statusText.value = 'JSON kopiert'; } catch { statusText.value = 'Copy Fehler'; } }
+
+// Diagnostics mapping
+const diagEvents = computed(()=> (sock.eventLog?.value || []).slice(-60));
+function formatTs(t:number){
+  const d = new Date(t); return d.toLocaleTimeString();
+}
+function summarizeDetail(d:any){
+  if (!d) return '';
+  if (d.latencyMs) return `lat=${d.latencyMs}ms`;
+  if (d.rtt) return `rtt=${d.rtt.toFixed(1)}ms`;
+  if (d.delay) return `retry in ${d.delay}ms (#${d.attempt})`;
+  if (d.code!=null) return `code=${d.code}${d.reason? ' '+d.reason:''}`;
+  if (d.url) return d.url;
+  return '';
+}
 </script>
 
 <style scoped>
@@ -231,6 +256,7 @@ async function copyJson(){ if (!activeRawJson.value) return; try { await navigat
 .power-display { display:flex; flex-direction:column; align-items:center; gap:28px; }
 .power-value { font-size: clamp(3.2rem, 9vw, 5.5rem); font-weight:800; letter-spacing:-2px; display:flex; flex-direction:column; line-height:0.9; }
 .power-value .unit { font-size: clamp(0.9rem,2vw,1.3rem); font-weight:500; letter-spacing:0; margin-top:12px; opacity:0.9; }
+.power-value .actual-line { margin-top:10px; font-size:0.95rem; font-weight:500; opacity:0.85; }
 .power-value .best-eq { margin-top:14px; display:flex; align-items:center; gap:10px; justify-content:center; font-size:0.9rem; font-weight:600; background:rgba(255,255,255,0.12); padding:8px 14px 9px; border-radius:999px; backdrop-filter:blur(6px); position:relative; overflow:hidden; }
 .power-value .best-eq.pinned { background:rgba(34,197,94,0.18); }
 .power-value .best-eq .fill { position:absolute; left:0; top:0; bottom:0; background:linear-gradient(90deg,#16a34a,#22c55e); opacity:0.55; pointer-events:none; transition:width .6s cubic-bezier(.4,.0,.2,1); }
@@ -268,10 +294,9 @@ async function copyJson(){ if (!activeRawJson.value) return; try { await navigat
 /* Raw JSON panel inside accordion */
 .raw-card pre.json { background: var(--ion-color-step-100,#222); padding:12px; border-radius:8px; font-size:12px; overflow:auto; max-height:220px; }
 
-.controls { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; }
-.field { display:flex; flex-direction:column; min-width:160px; }
-.field.small { max-width:140px; }
-.field label { font-size:12px; opacity:.7; margin-bottom:4px; }
+.controls { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+.controls.single { gap:16px; }
+/* removed field styles (IP input gone) */
 
 .chart-section { margin-top:28px; }
 

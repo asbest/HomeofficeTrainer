@@ -29,20 +29,84 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
   const minVoltage = ref<number | null>(null);
   const maxVoltage = ref<number | null>(null);
   const attempts = ref(0);
+  // Diagnostics
+  interface WsEvent { t: number; type: string; detail?: any; }
+  const eventLog = ref<WsEvent[]>([]);
+  const MAX_EVENTS = 120;
+  function pushEvent(type: string, detail?: any) {
+    eventLog.value.push({ t: Date.now(), type, detail });
+    if (eventLog.value.length > MAX_EVENTS) eventLog.value.shift();
+  }
   let ws: WebSocket | null = null;
   let manualClose = false;
   let reconnectTimer: number | null = null;
   let simTimer: number | null = null;
   const lastUrl = ref<string | null>(null);
   let triedSecureDowngraded = false;
+  let nextAllowedConnect = 0; // timestamp ms throttle
+  let connectStart = 0;
+  let pingTimer: number | null = null;
+  let lastPingSentAt = 0;
+  const lastPingRtt = ref<number | null>(null);
+  const lastFirstMessageLatency = ref<number | null>(null);
+  let firstSampleSeen = false;
+
+  // Potential (theoretical) power estimation (Thevenin style)
+  const voc = ref<number|null>(null);         // estimated open-circuit voltage
+  const rint = ref<number|null>(null);        // estimated internal resistance
+  const rintSamples = ref(0);                 // number of accepted R_int samples
+  const potentialPower = ref<number|null>(null); // computed potential Pmax
+  let lastVocUpdateTs = 0;
+  const I_LOW = 0.02;   // A threshold: treat as near open-circuit if below
+  const I_MIN = 0.08;   // A minimum current to accept R_int estimation
+  const ALPHA_VOC = 0.8; // smoothing factors
+  const ALPHA_RINT = 0.9;
+  const MIN_VALID_RINT = 0.01;  // Ohms
+  const MAX_VALID_RINT = 50;    // clamp unrealistic
+
+  function updateModel(sample: SocketSample) {
+    const V = sample.voltage;
+    const I = sample.current ?? 0;
+    if (V == null || Number.isNaN(V)) return;
+    if (I < I_LOW) {
+      // near open circuit, update voc
+      if (voc.value == null) voc.value = V; else voc.value = ALPHA_VOC * voc.value + (1-ALPHA_VOC)*V;
+      lastVocUpdateTs = sample.timestamp;
+    } else if (I >= I_MIN && voc.value && voc.value > V) {
+      const candidate = (voc.value - V) / I;
+      if (candidate > MIN_VALID_RINT && candidate < MAX_VALID_RINT) {
+        rint.value = rint.value == null ? candidate : ALPHA_RINT * rint.value + (1-ALPHA_RINT)*candidate;
+        rintSamples.value++;
+      }
+    }
+    // Derive Pmax if we have some confidence
+    if (voc.value && rint.value && rintSamples.value >= 3) {
+      const pmax = (voc.value * voc.value) / (4 * rint.value);
+      // Do not show lower than actual delivered power (avoid confusion)
+      const actual = sample.power;
+      potentialPower.value = Math.max(pmax, actual);
+    }
+  }
 
   function connect() {
     const ip = ipRef().trim();
     if (!ip) { error.value = 'IP fehlt'; return; }
+    const now = Date.now();
+    if (now < nextAllowedConnect) {
+      // schedule a deferred attempt exactly at allowed time if not already pending
+      if (!reconnectTimer) {
+        const wait = nextAllowedConnect - now;
+        reconnectTimer = window.setTimeout(() => { reconnectTimer = null; connect(); }, wait);
+      }
+      return;
+    }
     cleanup();
     manualClose = false;
     error.value = null;
     isConnecting.value = true;
+    connectStart = Date.now();
+    firstSampleSeen = false;
+    pushEvent('connect-attempt', { ip, attempt: attempts.value + 1 });
   // Simulation mode (enter 'demo' as host/IP)
   if (ip.toLowerCase() === 'demo') {
       startSimulation();
@@ -52,32 +116,56 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
     try {
       ws = new WebSocket(url);
       lastUrl.value = url;
+      pushEvent('ws-created', { url });
       ws.onopen = () => {
         isConnecting.value = false;
         isConnected.value = true;
         attempts.value = 0;
         triedSecureDowngraded = false; // reset after success
+        pushEvent('open', { url });
+        // Start periodic ping (every 15s)
+        if (pingTimer) window.clearInterval(pingTimer);
+        pingTimer = window.setInterval(() => {
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            lastPingSentAt = performance.now();
+            try { ws.send('p'); pushEvent('ping-sent'); } catch {/* ignore */}
+          }
+        }, 15000);
       };
       ws.onmessage = (ev) => {
         try {
           const data = JSON.parse(ev.data);
           const power = typeof data.power === 'number' ? data.power : NaN;
-            const voltage = typeof data.voltage === 'number' ? data.voltage : NaN;
-            const current = typeof data.current === 'number' ? data.current : null;
-            if (Number.isNaN(power) || Number.isNaN(voltage)) return; // skip invalid
-            const sample: SocketSample = { power, voltage, current, timestamp: Date.now(), raw: data };
-            latest.value = sample;
-            history.value.push(sample);
-            if (history.value.length > maxSamples) history.value.shift();
-            minPower.value = minPower.value == null ? power : Math.min(minPower.value, power);
-            maxPower.value = maxPower.value == null ? power : Math.max(maxPower.value, power);
-            minVoltage.value = minVoltage.value == null ? voltage : Math.min(minVoltage.value, voltage);
-            maxVoltage.value = maxVoltage.value == null ? voltage : Math.max(maxVoltage.value, voltage);
-        } catch (e) { /* ignore */ }
+          const voltage = typeof data.voltage === 'number' ? data.voltage : NaN;
+          const current = typeof data.current === 'number' ? data.current : null;
+          if (Number.isNaN(power) || Number.isNaN(voltage)) return; // skip invalid
+          const sample: SocketSample = { power, voltage, current, timestamp: Date.now(), raw: data };
+          latest.value = sample;
+          history.value.push(sample);
+          if (history.value.length > maxSamples) history.value.shift();
+          minPower.value = minPower.value == null ? power : Math.min(minPower.value, power);
+          maxPower.value = maxPower.value == null ? power : Math.max(maxPower.value, power);
+          minVoltage.value = minVoltage.value == null ? voltage : Math.min(minVoltage.value, voltage);
+          maxVoltage.value = maxVoltage.value == null ? voltage : Math.max(maxVoltage.value, voltage);
+          updateModel(sample);
+          if (!firstSampleSeen) {
+            firstSampleSeen = true;
+            lastFirstMessageLatency.value = Date.now() - connectStart;
+            pushEvent('first-sample', { latencyMs: lastFirstMessageLatency.value });
+          }
+        } catch (e) {
+          // Maybe it's a simple pong text frame
+            if (ev.data === 'pong' && lastPingSentAt) {
+              lastPingRtt.value = performance.now() - lastPingSentAt;
+              pushEvent('pong', { rtt: lastPingRtt.value });
+            }
+        }
       };
-      ws.onclose = () => {
+      ws.onclose = (ev) => {
         isConnected.value = false;
         isConnecting.value = false;
+        if (pingTimer) { window.clearInterval(pingTimer); pingTimer = null; }
+        pushEvent('close', { code: ev.code, reason: ev.reason, clean: ev.wasClean });
         if (!manualClose) scheduleReconnect();
       };
       ws.onerror = (ev) => {
@@ -85,15 +173,19 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
         if (!manualClose && !triedSecureDowngraded && /^wss:/i.test(url)) {
           triedSecureDowngraded = true;
           if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) ws.close();
-          // immediate retry with downgrade
-          setTimeout(() => connect(), 50);
+          // retry with downgrade after short throttle
+          nextAllowedConnect = Date.now() + 250;
+          pushEvent('downgrade-to-ws');
+          setTimeout(() => connect(), 250);
           return;
         }
         error.value = 'WebSocket Fehler';
+        pushEvent('error');
         ws?.close();
       };
     } catch (e: any) {
       error.value = e.message || String(e);
+      pushEvent('exception', { message: error.value });
       scheduleReconnect();
     }
   }
@@ -101,9 +193,22 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
   function scheduleReconnect() {
     if (manualClose) return;
     attempts.value++;
-    const delay = Math.min(reconnectMax, reconnectBase * Math.pow(2, Math.min(attempts.value, 6)));
+    // Fast silent retries for first two attempts (hidden from user perception)
+    let finalDelay: number;
+    if (attempts.value <= 2) {
+      finalDelay = 60; // ~60ms quick retry
+      // keep isConnecting true so UI does not flicker to disconnected
+      isConnecting.value = true;
+      pushEvent('fast-retry', { attempt: attempts.value, delay: finalDelay });
+    } else {
+      const delay = Math.min(reconnectMax, reconnectBase * Math.pow(2, Math.min(attempts.value, 6)));
+      const minDelay = 300; // enforce minimal delay to avoid rapid looping
+      finalDelay = Math.max(delay, minDelay);
+    }
+    nextAllowedConnect = Date.now() + finalDelay;
     if (reconnectTimer) window.clearTimeout(reconnectTimer);
-    reconnectTimer = window.setTimeout(() => connect(), delay);
+    reconnectTimer = window.setTimeout(() => { reconnectTimer = null; connect(); }, finalDelay);
+    pushEvent('reconnect-scheduled', { attempt: attempts.value, delay: finalDelay });
   }
 
   function disconnect() {
@@ -111,6 +216,8 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
     if (reconnectTimer) { window.clearTimeout(reconnectTimer); reconnectTimer = null; }
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) ws.close();
   if (simTimer) { window.clearInterval(simTimer); simTimer = null; }
+    if (pingTimer) { window.clearInterval(pingTimer); pingTimer = null; }
+    pushEvent('manual-disconnect');
     cleanup();
   }
 
@@ -134,6 +241,7 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
     isConnecting.value = false;
     isConnected.value = true;
     attempts.value = 0;
+    pushEvent('sim-start');
     let logical = 40 + Math.random()*20; // start mid-range
     simTimer = window.setInterval(() => {
       // Smooth random walk with bounds 2..100 W
@@ -153,24 +261,23 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
 
   onBeforeUnmount(() => disconnect());
 
-  return { connect, disconnect, isConnected, isConnecting, error, latest, history, power, voltage, current, lastUpdated, sampleCount, minPower, maxPower, minVoltage, maxVoltage, lastUrl };
+  return { connect, disconnect, isConnected, isConnecting, error, latest, history, power, voltage, current, lastUpdated, sampleCount, minPower, maxPower, minVoltage, maxVoltage, lastUrl, attempts, eventLog, lastPingRtt, lastFirstMessageLatency, voc, rint, rintSamples, potentialPower };
 }
 
 function buildWsUrl(ip: string, forcedPlain: boolean) {
-  if (/^wss?:\/\//i.test(ip)) return ip.replace(/\/$/, '');
-  const cleaned = ip.replace(/\/$/, '');
-  const hasPort = /:[0-9]+$/.test(cleaned);
-  const hostOnly = cleaned.replace(/^https?:\/\//i, '').split('/')[0];
-  const isLan = /^(localhost|127\.0\.0\.1|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/i.test(hostOnly) || /^[a-z0-9\-]+\.local$/i.test(hostOnly) || /homeofficetrainer/i.test(hostOnly);
-  // If full http/https given, transform accordingly but avoid secure for LAN w/o cert
-  if (/^https?:\/\//i.test(cleaned)) {
-    const secureReq = /^https:/i.test(cleaned) && !isLan && !forcedPlain;
-    let base = cleaned.replace(/^http/i, 'ws').replace(/:80$/, '');
-    if (!hasPort) base += ':81';
-    if (!secureReq) base = base.replace(/^wss:/i,'ws:');
-    return base;
+  if (/^wss?:\/\//i.test(ip)) {
+    // ensure path /ws present
+    return ip.replace(/\/$/, '').match(/\/ws(\b|$)/) ? ip : ip.replace(/\/$/, '') + '/ws';
   }
+  let cleaned = ip.replace(/\/$/, '');
+  // Strip protocol if user typed http(s)://
+  cleaned = cleaned.replace(/^https?:\/\//i, '');
+  // Remove any trailing /ws to re-append normalized
+  cleaned = cleaned.replace(/\/ws$/i, '');
+  const hostOnly = cleaned.split('/')[0];
+  const isLan = /^(localhost|127\.0\.0\.1|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/i.test(hostOnly) || /^[a-z0-9\-]+\.local$/i.test(hostOnly) || /homeofficetrainer/i.test(hostOnly);
   const secureContext = (typeof window !== 'undefined') && window.location && window.location.protocol === 'https:';
   const useSecure = secureContext && !isLan && !forcedPlain;
-  return (useSecure ? 'wss://' : 'ws://') + cleaned + (hasPort ? '' : ':81');
+  const scheme = useSecure ? 'wss://' : 'ws://';
+  return scheme + hostOnly + '/ws';
 }
