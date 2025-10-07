@@ -23,7 +23,7 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
   const isConnecting = ref(false);
   const error = ref<string | null>(null);
   const latest = ref<SocketSample | null>(null);
-  const history = ref<SocketSample[]>([]);
+ const history = ref<SocketSample[]>([]);
   const minPower = ref<number | null>(null);
   const maxPower = ref<number | null>(null);
   const minVoltage = ref<number | null>(null);
@@ -68,6 +68,12 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
     const V = sample.voltage;
     const I = sample.current ?? 0;
     if (V == null || Number.isNaN(V)) return;
+    // Seed Voc if unset; gently raise if we observe a higher voltage later
+    if (voc.value == null && Number.isFinite(V)) {
+      voc.value = V; lastVocUpdateTs = sample.timestamp;
+    } else if (voc.value != null && Number.isFinite(V) && V > voc.value) {
+      voc.value = ALPHA_VOC * voc.value + (1-ALPHA_VOC) * V; lastVocUpdateTs = sample.timestamp;
+    }
     if (I < I_LOW) {
       // near open circuit, update voc
       if (voc.value == null) voc.value = V; else voc.value = ALPHA_VOC * voc.value + (1-ALPHA_VOC)*V;
@@ -137,7 +143,11 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
           const data = JSON.parse(ev.data);
           const power = typeof data.power === 'number' ? data.power : NaN;
           const voltage = typeof data.voltage === 'number' ? data.voltage : NaN;
-          const current = typeof data.current === 'number' ? data.current : null;
+          let current: number | null = (typeof data.current === 'number' && Number.isFinite(data.current)) ? data.current : null;
+          // Derive current (A) from power and voltage if missing/invalid
+          if ((current == null || !Number.isFinite(current)) && Number.isFinite(power) && Number.isFinite(voltage) && voltage > 0) {
+            current = power / voltage;
+          }
           if (Number.isNaN(power) || Number.isNaN(voltage)) return; // skip invalid
           const sample: SocketSample = { power, voltage, current, timestamp: Date.now(), raw: data };
           latest.value = sample;
@@ -235,6 +245,8 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
     maxPower.value = maxPower.value == null ? powerVal : Math.max(maxPower.value, powerVal);
     minVoltage.value = minVoltage.value == null ? voltageVal : Math.min(minVoltage.value, voltageVal);
     maxVoltage.value = maxVoltage.value == null ? voltageVal : Math.max(maxVoltage.value, voltageVal);
+    // Update Thevenin model with every sample
+    updateModel(sample);
   }
 
   function startSimulation() {
@@ -242,15 +254,56 @@ export function usePowerSocket(ipRef: () => string, options: UsePowerSocketOptio
     isConnected.value = true;
     attempts.value = 0;
     pushEvent('sim-start');
-    let logical = 40 + Math.random()*20; // start mid-range
+    // Scenario: ramp up from slow start to top speed within 10 seconds,
+    // then only small fluctuations (5–10 W) around a target level.
+    const startTs = performance.now();
+    const dtMs = 400; // ~2.5 Hz updates (slower sampling)
+  // Choose a realistic target between 120 and 260 W (max 300 W)
+  const target = 120 + Math.random()*140;
+    const rampDuration = 10.0; // seconds
+    // Weak cadence to keep a natural pedal feel
+    const f = 0.8 + Math.random()*0.3; // Hz (slower cadence)
+    // After ramp: small amplitude (5–10 W)
+  const steadyAmp = 8 + Math.random()*7; // 8–15 W small steady oscillation
+    // During ramp we can allow a bit more oscillation to feel like accelerating
+    const rampAmp = steadyAmp + 3 + Math.random()*4; // 8–12 W approx
+    // tiny slow drift to avoid total static flatline after ramp
+    let drift = 0;
+    let driftVel = (Math.random()-0.5) * 0.01; // very small
+    const driftClamp = 3; // +/-3W drift window
+    // Seed open-circuit voltage fixed at 24V for linear mapping (V increases with P)
+    voc.value = 24;
+
     simTimer = window.setInterval(() => {
-      // Smooth random walk with bounds 2..100 W
-      const delta = (Math.random()-0.5)*8;
-      logical = Math.min(100, Math.max(2, logical + delta));
-      // Fake voltage around 5.00V +/- 0.15, unrelated to power but plausible USB style
-      const voltageVal = 5 + (Math.random()-0.5)*0.3;
-      pushSample(Number(logical.toFixed(2)), Number(voltageVal.toFixed(3)), null);
-    }, 800); // ~0.8s cadence
+      const t = (performance.now() - startTs) / 1000; // seconds
+      const phase = 2*Math.PI*f*t;
+      // Compute ramp factor 0..1 over rampDuration with ease-out curve
+      const r = Math.min(1, t / rampDuration);
+      const ease = 1 - Math.pow(1 - r, 2); // quadratic ease-out
+      // Base power goes from ~5W to target
+      const base = 5 + ease*(target - 5);
+      const amp = r < 1 ? rampAmp : steadyAmp;
+
+      // Update small drift
+      drift += driftVel * (dtMs/1000);
+      if (Math.abs(drift) > driftClamp) driftVel = -driftVel;
+      driftVel += (Math.random()-0.5) * 0.002;
+      driftVel = Math.max(-0.02, Math.min(0.02, driftVel));
+
+      // Cadence contribution + tiny jitter
+      const cadence = amp * Math.sin(phase);
+      const jitter = (Math.random()-0.5) * 1.5; // +/-0.75W
+    let logical = base + cadence + drift + jitter;
+    // Clamp to 0..300 W
+    logical = Math.max(0, Math.min(300, logical));
+
+    // Linear voltage-power mapping: 0W -> 0V, 300W -> 24V (with tiny noise)
+    let voltageVal = (logical / 300) * 24 + (Math.random()-0.5) * 0.04; // +/-0.02V noise
+    voltageVal = Math.max(0, Math.min(24, voltageVal));
+      const currentVal = logical > 0 && voltageVal > 0 ? logical/voltageVal : 0;
+
+      pushSample(Number(logical.toFixed(2)), Number(voltageVal.toFixed(3)), Number(currentVal.toFixed(3)));
+    }, dtMs);
   }
 
   const lastUpdated = computed(() => latest.value?.timestamp ?? null);

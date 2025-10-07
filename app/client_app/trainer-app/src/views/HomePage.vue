@@ -10,10 +10,9 @@
         <section class="hero" :class="{ active: activeLatest }">
         <div class="power-display" v-if="activeLatest">
           <div class="power-value">
-            <span class="num">{{ displayPotential? fmt(displayPotential,1) : fmt(activePower,2) }}</span>
-            <span class="unit" v-if="displayPotential">Watt Potenzial</span>
-            <span class="unit" v-else>Watt</span>
-            <div class="actual-line" v-if="displayPotential">Aktuell: {{ fmt(activePower,2) }} W<span v-if="rintSamples<3"> (lerne…)</span></div>
+            <span class="num">{{ fmt(activePower,2) }}</span>
+            <span class="unit">Watt</span>
+            <div class="actual-line" v-if="displayPotential">Potenzial: {{ fmt(displayPotential,1) }} W<span v-if="rintSamples<3"> (lerne…)</span></div>
             <div v-if="displayEq" class="best-eq" :class="{ pinned: isPinned }">
               <div class="fill" v-if="isPinned" :style="{ width: fillWidth }"></div>
               <span class="icon">{{ displayEq.profile.icon }}</span>
@@ -45,6 +44,10 @@
             <div class="status-pill" :class="statusClass">
               <span class="dot" :class="statusDot"></span>
               <span class="text">{{ statusText }}</span>
+            </div>
+            <div v-if="activeRunning && rintSamples < 3" class="learn-badge" :title="'Modell lernt… ('+Math.min(rintSamples,3)+'/3)'">
+              <span class="icon">🧠</span>
+              <span class="num">{{ Math.min(rintSamples,3) }}/3</span>
             </div>
           </div>
         </section>
@@ -78,6 +81,7 @@
               <div class="accordion-inner" slot="content">
                 <div class="controls single">
                   <ion-button size="default" :disabled="activeRunning" @click="startMonitoring">Connect</ion-button>
+                  <ion-button size="default" color="tertiary" :disabled="activeRunning" @click="startDemo">Demo</ion-button>
                   <ion-button size="default" color="medium" :disabled="!activeRunning" @click="stopMonitoring">Stop</ion-button>
                 </div>
                 <div class="endpoint muted small-line">Endpoint: <span>{{ endpointPreview }}</span></div>
@@ -123,26 +127,30 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
+ <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonProgressBar, IonAccordionGroup, IonAccordion, IonItem, IonLabel } from '@ionic/vue';
 import { usePowerSocket } from '@/composables/usePowerSocket';
 import PowerChart from '@/components/PowerChart.vue';
-import { equivalents } from '@/data/powerProfiles';
+// Removed unused equivalents import
+// import { equivalents } from '@/data/powerProfiles';
 
 // Fixed AP host (open AP mode): 192.168.4.1
 const FIXED_HOST = '192.168.4.1';
+// Active host (can switch to 'demo')
+const host = ref<string>(FIXED_HOST);
 
 // Polling composable
 // WebSocket composable
-const sock = usePowerSocket(() => FIXED_HOST, {});
+const sock = usePowerSocket(() => host.value, {});
 
 // Legacy placeholder to keep template minimal changes (not used)
 const intervalMsLocal = ref(0);
 
-function startMonitoring(){ sock.connect(); statusText.value='Verbinden…'; }
-function stopMonitoring(){ sock.disconnect(); statusText.value='Gestoppt'; }
-const endpointPreview = computed(() => sock.lastUrl?.value || `ws://${FIXED_HOST}/ws`);
+function startMonitoring(){ host.value = FIXED_HOST; sock.connect(); statusText.value='Verbinden…'; }
+function startDemo(){ host.value = 'demo'; sock.connect(); statusText.value='Demo läuft'; }
+function stopMonitoring(){ sock.disconnect(); host.value = FIXED_HOST; statusText.value='Gestoppt'; }
+const endpointPreview = computed(() => host.value.toLowerCase() === 'demo' ? 'Demo-Modus' : (sock.lastUrl?.value || `ws://${host.value}/ws`));
 
 // Unified reactive projections
 const activeLatest = computed(()=> sock.latest.value);
@@ -190,18 +198,20 @@ const chartSamples = computed(() => activeHistory.value.map((s: any) => ({ power
 import { powerProfiles } from '@/data/powerProfiles';
 const eqListFull = computed(()=> {
   const p = activePower.value;
-  if (!p || p <= 0) {
-    return powerProfiles.map(pr => ({ profile: pr, factor: null as any }));
-  }
-  return equivalents(p);
+  // Always show all profiles ordered by required watts; compute factor from current power if available
+  return [...powerProfiles]
+    .sort((a,b) => a.watts - b.watts)
+    .map(pr => ({ profile: pr, factor: (p && pr.watts) ? (p / pr.watts) : null as any }));
 });
 const autoEq = computed(()=> {
-  const list = eqListFull.value;
+  const p = activePower.value;
+  if (!p || p <= 0) return null;
+  const list = eqListFull.value.filter(e => typeof e.factor === 'number' && !Number.isNaN(e.factor));
   if (!list.length) return null;
   let closest = list[0];
-  let diff = Math.abs(list[0].factor - 1);
+  let diff = Math.abs((list[0].factor as number) - 1);
   for (let i=1;i<list.length;i++) {
-    const d = Math.abs(list[i].factor - 1);
+    const d = Math.abs((list[i].factor as number) - 1);
     if (d < diff) { diff = d; closest = list[i]; }
   }
   return closest;
@@ -221,7 +231,7 @@ const displayEq = computed(()=> {
   }
   return autoEq.value;
 });
-const eqList = computed(()=> eqListFull.value.slice(0,12));
+const eqList = computed(()=> eqListFull.value);
 const isPinned = computed(()=> !!selectedEqId.value && displayEq.value && selectedEqId.value === displayEq.value.profile.id);
 // fill percent: clamp factor (<=1) to percent, if over 1, show 100%
 const fillWidth = computed(()=> {
@@ -256,7 +266,7 @@ function summarizeDetail(d:any){
 .power-display { display:flex; flex-direction:column; align-items:center; gap:28px; }
 .power-value { font-size: clamp(3.2rem, 9vw, 5.5rem); font-weight:800; letter-spacing:-2px; display:flex; flex-direction:column; line-height:0.9; }
 .power-value .unit { font-size: clamp(0.9rem,2vw,1.3rem); font-weight:500; letter-spacing:0; margin-top:12px; opacity:0.9; }
-.power-value .actual-line { margin-top:10px; font-size:0.95rem; font-weight:500; opacity:0.85; }
+.power-value .actual-line { margin-top:10px; font-size:0.95rem; font-weight:500; letter-spacing: 0; opacity:0.9; }
 .power-value .best-eq { margin-top:14px; display:flex; align-items:center; gap:10px; justify-content:center; font-size:0.9rem; font-weight:600; background:rgba(255,255,255,0.12); padding:8px 14px 9px; border-radius:999px; backdrop-filter:blur(6px); position:relative; overflow:hidden; }
 .power-value .best-eq.pinned { background:rgba(34,197,94,0.18); }
 .power-value .best-eq .fill { position:absolute; left:0; top:0; bottom:0; background:linear-gradient(90deg,#16a34a,#22c55e); opacity:0.55; pointer-events:none; transition:width .6s cubic-bezier(.4,.0,.2,1); }
@@ -268,6 +278,9 @@ function summarizeDetail(d:any){
 .mini-block .label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:1px; opacity:.7; }
 .mini-block .val { font-size:1.05rem; font-weight:600; margin-top:4px; font-variant-numeric: tabular-nums; }
 .hero-status { position:absolute; top:12px; right:16px; }
+.learn-badge { display:inline-flex; align-items:center; gap:6px; margin-left:10px; padding:4px 8px; border-radius:999px; background:rgba(0,0,0,0.28); color:#fff; font-size:11px; border:1px solid var(--ion-color-step-200,#2e2e2e); vertical-align:middle; }
+.learn-badge .icon { font-size:13px; line-height:1; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.4)); }
+.learn-badge .num { font-weight:600; font-variant-numeric: tabular-nums; opacity:0.9; }
 
 .settings-acc { margin-top:16px; margin-bottom:8px; }
 .accordion-inner { padding:16px 12px 8px; }
