@@ -1,2 +1,37 @@
 /* For information on how to create your own theme, please see:
 http://ionicframework.com/docs/theming/ */
+
+/** Greenpeace-inspired color theme **/
+:root {
+  /** primary - Greenpeace green **/
+  --ion-color-primary: #00A652;
+  --ion-color-primary-rgb: 0, 166, 82;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #009248;
+  --ion-color-primary-tint: #1aaf63;
+
+  /** secondary - lighter green **/
+  --ion-color-secondary: #00D95F;
+  --ion-color-secondary-rgb: 0, 217, 95;
+  --ion-color-secondary-contrast: #000000;
+  --ion-color-secondary-contrast-rgb: 0, 0, 0;
+  --ion-color-secondary-shade: #00c054;
+  --ion-color-secondary-tint: #1add6f;
+
+  /** tertiary - forest green **/
+  --ion-color-tertiary: #007A3D;
+  --ion-color-tertiary-rgb: 0, 122, 61;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #006b36;
+  --ion-color-tertiary-tint: #1a8750;
+
+  /** success - bright green **/
+  --ion-color-success: #00A652;
+  --ion-color-success-rgb: 0, 166, 82;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #009248;
+  --ion-color-success-tint: #1aaf63;
+}

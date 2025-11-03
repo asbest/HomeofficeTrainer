@@ -35,7 +35,7 @@ function draw() {
   localCtx.save();
   localCtx.globalAlpha = 0.5;
   localCtx.lineWidth = 1;
-  localCtx.strokeStyle = '#1f2a3a';
+  localCtx.strokeStyle = '#1a3d2a';
   for (let x=0; x<=W; x+=90){ localCtx.beginPath(); localCtx.moveTo(x,0); localCtx.lineTo(x,H); localCtx.stroke(); }
   for (let y=0; y<=H; y+=48){ localCtx.beginPath(); localCtx.moveTo(0,y); localCtx.lineTo(W,y); localCtx.stroke(); }
   localCtx.restore();
@@ -50,7 +50,7 @@ function draw() {
   localCtx.lineWidth = 2; localCtx.strokeStyle = '#6ee7b7'; localCtx.beginPath();
   data.forEach((d,i)=>{ const x = (i/(data.length-1))*W; const y=yScale(d.power,pMin,pMax); if(i===0) localCtx.moveTo(x,y); else localCtx.lineTo(x,y); }); localCtx.stroke();
   // voltage
-  localCtx.lineWidth = 2; localCtx.strokeStyle = '#60a5fa'; localCtx.beginPath();
+  localCtx.lineWidth = 2; localCtx.strokeStyle = '#4ade80'; localCtx.beginPath();
   data.forEach((d,i)=>{ const x = (i/(data.length-1))*W; const y=yScale(d.voltage,vMin,vMax); if(i===0) localCtx.moveTo(x,y); else localCtx.lineTo(x,y); }); localCtx.stroke();
   // legends
   localCtx.fillStyle = '#8a93a6'; localCtx.font = '12px ui-monospace, monospace';
@@ -69,6 +69,6 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); if (raf) c
 </script>
 
 <style scoped>
-.chart-wrap { width: 100%; height: 240px; background:#0b1220; border:1px solid var(--ion-color-step-150,#2a3142); border-radius:14px; overflow:hidden; }
+.chart-wrap { width: 100%; height: 240px; background:#0d1f15; border:1px solid var(--ion-color-step-150,#1a3d2a); border-radius:14px; overflow:hidden; }
 .chart { width:100%; height:100%; display:block; }
 </style>
