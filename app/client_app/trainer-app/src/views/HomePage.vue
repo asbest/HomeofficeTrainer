@@ -1,10 +1,5 @@
 <template>
   <ion-page>
-    <ion-header :translucent="true">
-      <ion-toolbar color="success">
-        <ion-title>HomeOffice Trainer</ion-title>
-      </ion-toolbar>
-    </ion-header>
     <ion-content :fullscreen="true" class="ion-padding">
       <div class="desktop-split">
         <section class="hero" :class="{ active: activeLatest }">
@@ -129,7 +124,7 @@
 
  <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonProgressBar, IonAccordionGroup, IonAccordion, IonItem, IonLabel } from '@ionic/vue';
+import { IonContent, IonPage, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonProgressBar, IonAccordionGroup, IonAccordion, IonItem, IonLabel } from '@ionic/vue';
 import { usePowerSocket } from '@/composables/usePowerSocket';
 import PowerChart from '@/components/PowerChart.vue';
 // Removed unused equivalents import
