@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <ion-header :translucent="true">
-      <ion-toolbar color="dark">
+      <ion-toolbar color="success">
         <ion-title>HomeOffice Trainer</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -75,7 +75,7 @@
 
           <ion-accordion-group expand="inset" class="settings-acc">
             <ion-accordion value="settings">
-              <ion-item slot="header" color="dark">
+              <ion-item slot="header" color="success">
                 <ion-label>Einstellungen & Verbindung</ion-label>
               </ion-item>
               <div class="accordion-inner" slot="content">
@@ -260,8 +260,8 @@ function summarizeDetail(d:any){
 </script>
 
 <style scoped>
-.hero { position:relative; margin:-16px -16px 24px; padding:48px 24px 56px; text-align:center; background: radial-gradient(circle at 40% 35%, #3b82f6 0%, #1e3a8a 70%); color:#fff; transition:0.4s background; display:flex; flex-direction:column; justify-content:center; }
-.hero.active { background: radial-gradient(circle at 60% 40%, #06b6d4 0%, #0f172a 70%); }
+.hero { position:relative; margin:-16px -16px 24px; padding:48px 24px 56px; text-align:center; background: radial-gradient(circle at 40% 35%, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 70%); color:#fff; transition:0.4s background; display:flex; flex-direction:column; justify-content:center; }
+.hero.active { background: radial-gradient(circle at 60% 40%, var(--ion-color-secondary) 0%, var(--ion-color-tertiary) 70%); }
 .hero-placeholder { font-size:0.95rem; opacity:0.85; line-height:1.4; }
 .power-display { display:flex; flex-direction:column; align-items:center; gap:28px; }
 .power-value { font-size: clamp(3.2rem, 9vw, 5.5rem); font-weight:800; letter-spacing:-2px; display:flex; flex-direction:column; line-height:0.9; }
@@ -291,10 +291,10 @@ function summarizeDetail(d:any){
 .eq-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:14px; }
 .eq-item { background:var(--ion-color-step-100,#202020); padding:14px 10px 16px; border-radius:18px; display:flex; flex-direction:column; align-items:center; position:relative; overflow:hidden; min-height:130px; box-shadow:0 4px 10px -4px rgba(0,0,0,0.5); cursor:pointer; transition:.25s box-shadow, .25s transform, .25s background; }
 .eq-item:hover { box-shadow:0 6px 14px -4px rgba(0,0,0,0.65); transform:translateY(-2px); }
-.eq-item.active { outline:2px solid #3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,0.6), 0 8px 18px -6px rgba(0,0,0,0.65); background:linear-gradient(135deg,#1e3a8a,#0f172a); }
+.eq-item.active { outline:2px solid var(--ion-color-primary); box-shadow:0 0 0 2px rgba(var(--ion-color-primary-rgb),0.6), 0 8px 18px -6px rgba(0,0,0,0.65); background:linear-gradient(135deg,var(--ion-color-tertiary),var(--ion-color-primary-shade)); }
 .eq-item .icon { font-size:2.2rem; filter:drop-shadow(0 3px 4px rgba(0,0,0,0.4)); }
 .eq-item .label { margin-top:10px; text-align:center; font-size:.75rem; line-height:1.1; font-weight:500; }
-.eq-item .factor { margin-top:6px; font-size:.7rem; padding:4px 8px; background:linear-gradient(90deg,#2563eb,#0891b2); border-radius:999px; color:#fff; font-weight:600; letter-spacing:.5px; }
+.eq-item .factor { margin-top:6px; font-size:.7rem; padding:4px 8px; background:linear-gradient(90deg,var(--ion-color-primary),var(--ion-color-secondary)); border-radius:999px; color:#fff; font-weight:600; letter-spacing:.5px; }
 .placeholder.subtle { opacity:.35; }
 
 /* Reuse existing status pill but adjust inside hero */
